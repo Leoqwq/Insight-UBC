@@ -92,38 +92,57 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
-		return Promise.reject("Not implemented.");
+		return Promise.resolve(this.datasets);
 	}
 
 	// Helpers
 	private async processZipFile(zipContent: string): Promise<Section[]> {
 		const zip = await jszip.loadAsync(zipContent, {base64: true});
-		const sectionPromises: Array<Promise<Section>> = [];
+		const sectionPromises: Array<Promise<Section[]>> = [];
 
 		for (const [relativePath, file] of Object.entries(zip.files)) {
-			const sectionPromise = this.extractSectionInfo(file);
+			const sectionPromise = this.extractSections(file);
 			sectionPromises.push(sectionPromise);
 		}
 
-		return await Promise.all(sectionPromises);
+		// Use Promise.all to wait for all async calls to complete
+		const sectionsArrays = await Promise.all(sectionPromises);
+
+		// Flatten the array of arrays into a single array of sections
+		const sections: Section[] = sectionsArrays.reduce((acc, val) => acc.concat(val), []);
+
+		return sections;
 	}
 
-	private async extractSectionInfo(file: jszip.JSZipObject): Promise<Section> {
+	private async extractSections(file: jszip.JSZipObject): Promise<Section[]> {
 		// Parse the file content
-		const content = JSON.parse(await file.async("text"));
+		const fileContent = await file.async("string");
 
-		// Extract relevant fields
-		const uuid = content.uuid;
-		const id = content.id;
-		const title = content.title;
-		const instructor = content.instructor;
-		const dept = content.dept;
-		const year = content.year;
-		const avg = content.avg;
-		const pass = content.pass;
-		const fail = content.fail;
-		const audit = content.audit;
+		// Parse the string into a JSON object
+		const jsonObject = JSON.parse(fileContent);
 
-		return new Section(uuid, id, title, instructor, dept, year, avg, pass, fail, audit);
+		// Extract the "result" array from the JSON object
+		const resultArray = jsonObject.result;
+
+		console.log(resultArray);
+
+		const sections: Section[] = [];
+
+		resultArray.forEach((obj: any, index: any) => {
+			const uuid = obj.id;
+			const id = obj.Course;
+			const title = obj.Title;
+			const instructor = obj.Professor;
+			const dept = obj.Subject;
+			const year = obj.Year;
+			const avg = obj.Avg;
+			const pass = obj.Pass;
+			const fail = obj.Fail;
+			const audit = obj.Audit;
+
+			sections.push(new Section(uuid, id, title, instructor, dept, year, avg, pass, fail, audit));
+		});
+
+		return sections;
 	}
 }
