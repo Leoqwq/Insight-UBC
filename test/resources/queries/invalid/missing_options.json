@@ -1,0 +1,12 @@
+{
+	"title": "missing_options",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "zool"
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

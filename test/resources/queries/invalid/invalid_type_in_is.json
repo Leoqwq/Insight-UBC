@@ -1,0 +1,38 @@
+{
+	"title": "invalid_type_in_is",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"sections_avg": 90
+							}
+						},
+						{
+							"EQ": {
+								"sections_avg": 91
+							}
+						}
+					]
+				},
+				{
+					"IS": {
+						"sections_dept": 91
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_id",
+				"sections_avg"
+			],
+			"ORDER": "sections_dept"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

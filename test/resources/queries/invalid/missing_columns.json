@@ -1,0 +1,15 @@
+{
+	"title": "missing columns",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "zool"
+			}
+		},
+		"OPTIONS": {
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
