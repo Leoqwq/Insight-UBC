@@ -1,4 +1,11 @@
-import {IInsightFacade, InsightDataset, InsightDatasetKind, InsightError, InsightResult} from "./IInsightFacade";
+import {
+	IInsightFacade,
+	InsightDataset,
+	InsightDatasetKind,
+	InsightError,
+	InsightResult,
+	NotFoundError
+} from "./IInsightFacade";
 import jszip from "jszip";
 import * as fs from "fs-extra";
 import path from "path";
@@ -61,7 +68,7 @@ export default class InsightFacade implements IInsightFacade {
 		const sections = await this.processZipFile(content);
 
 		// Save the processed data to disk
-		const filePath = path.join(this.dataDir, `${id}_${kind}.json`);
+		const filePath = path.join(this.dataDir, `${id}.json`);
 		await fs.writeJson(filePath, JSON.stringify(sections));
 
 		// Add the datasets object
@@ -80,11 +87,34 @@ export default class InsightFacade implements IInsightFacade {
 			ids.push(dataset.id);
 		}
 
-		return Promise.resolve(ids);
+		return ids;
 	}
 
 	public async removeDataset(id: string): Promise<string> {
-		return Promise.reject("Not implemented.");
+		// Validate the id
+		if (!id || id.trim().length === 0 || id.includes("_")) {
+			throw new InsightError("Invalid id");
+		}
+
+		// Check if the dataset with the specified id exists
+		const datasetIndex = this.datasets.findIndex((dataset) => dataset.id === id);
+		if (datasetIndex === -1) {
+			throw new NotFoundError("Dataset not found");
+		}
+
+		try {
+			// Remove dataset from memory
+			this.datasets.splice(datasetIndex, 1);
+
+			// Remove dataset from disk
+			const filePath = path.join(this.dataDir, `${id}.json`);
+			await fs.remove(filePath);
+
+			return id;
+		} catch (error: any) {
+			// If any error occurs during removal, throw an InsightError
+			throw new InsightError(`Failed to remove dataset ${id}: ${error.message}`);
+		}
 	}
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
