@@ -42,67 +42,6 @@ export class Section {
 	}
 }
 
-interface Query {
-	WHERE: Where;
-	OPTIONS: Option;
-}
-
-interface Where {
-	OR?: Where[];
-	AND?: Where[];
-}
-
-type Filter = LogicComparison | MComparison | SComparison | Negation;
-
-interface LogicComparison {
-	logic: "AND" | "OR";
-	conditions: Filter[];
-}
-
-interface MComparison {
-	comparator: "LT" | "GT" | "EQ";
-	mkey: string;
-	number: number;
-}
-
-interface SComparison {
-	skey: string;
-	inputString: string;
-}
-
-interface Negation {
-	condition: Filter;
-}
-
-interface Option {
-	COLUMNS: string[];
-	ORDER?: string[];
-}
-
-function validateQuery(queryModel: Query) {
-	if(queryModel.WHERE == null) {
-		return false;
-	} else if(queryModel.OPTIONS == null) {
-		return false;
-	} else if(queryModel.OPTIONS.COLUMNS == null) {
-		return false;
-	} else if(queryModel.WHERE.AND?.length === 0) {
-		return false;
-	} else if(queryModel.WHERE.OR?.length === 0) {
-		return false;
-	} else {
-		console.log("where:");
-		console.log(queryModel.WHERE);
-		console.log("options:");
-		console.log(queryModel.OPTIONS);
-		console.log("and?");
-		console.log(queryModel.WHERE.AND);
-		console.log("or?");
-		console.log(queryModel.WHERE.OR);
-		return true;
-	}
-}
-
 export default class InsightFacade implements IInsightFacade {
 	private readonly datasets: InsightDataset[];
 	private readonly dataDir: string = "./data"; // Directory to store the processed datasets
@@ -179,11 +118,7 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
-		const queryModel: Query = query as Query;
-		if (!validateQuery(queryModel)) {
-			return Promise.reject(new InsightError());
-		}
-		return Promise.reject("not implemented");
+		return Promise.reject("Not implemented.");
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
