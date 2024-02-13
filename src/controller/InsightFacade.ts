@@ -9,6 +9,8 @@ import {
 import jszip from "jszip";
 import * as fs from "fs-extra";
 import path from "path";
+import {symlinkSync} from "fs";
+
 
 /**
  * This is the main programmatic entry point for the project.
@@ -41,53 +43,82 @@ export class Section {
 		this.audit = audit;
 	}
 }
+interface Query {
+	WHERE: Where;
+	OPTIONS: Option;
+}
+
+interface Where {
+	OR?: Where[];
+	AND?: Where[];
+	NOT?: Where;
+	GT?: object;
+	LT?: object;
+	EQ?: object;
+	IS?: object;
+}
+
+interface Negation {
+	condition: Where;
+}
+
+interface Option {
+	COLUMNS: string[];
+	ORDER?: string;
+}
 
 export default class InsightFacade implements IInsightFacade {
 	private readonly datasets: InsightDataset[];
 	private readonly dataDir: string = "./data"; // Directory to store the processed datasets
+	private initialMorSKey: string;
+	private listOfMorSKey: string[] = [];
 
 	constructor() {
-		this.datasets = [];
+		// eslint-disable-next-line max-len
+		this.datasets = [{id: "sections", kind: InsightDatasetKind.Sections, numRows: 1},
+			{id: "ubc", kind: InsightDatasetKind.Sections, numRows: 1}];
+		this.initialMorSKey = "_";
 		console.log("InsightFacadeImpl::init()");
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		// Validate the id
-		if (!id || id.trim().length === 0 || id.includes("_")) {
-			throw new InsightError("Invalid id");
-		}
-
-		// Check if the dataset with the same id already exists
-		for (let dataset of this.datasets) {
-			if (dataset.id === id) {
-				throw new InsightError("Dataset with the same id already exists");
-			}
-		}
-
-		// Process and save the dataset
-		const sections = await this.processZipFile(content);
-
-		// Save the processed data to disk
-		const filePath = path.join(this.dataDir, `${id}.json`);
-		await fs.writeJson(filePath, JSON.stringify(sections));
-
-		// Add the datasets object
-		this.datasets.push(
-			{
-				id,
-				kind,
-				numRows: sections.length
-			}
-		);
-
-		// Return the list of currently added datasets
-		const ids: string[] = [];
-
-		for (let dataset of this.datasets) {
-			ids.push(dataset.id);
-		}
-
-		return ids;
+		// // Validate the id
+		// if (!id || id.trim().length === 0 || id.includes("_")) {
+		// 	throw new InsightError("Invalid id");
+		// }
+		//
+		// // Check if the dataset with the same id already exists
+		// for (let dataset of this.datasets) {
+		// 	if (dataset.id === id) {
+		// 		throw new InsightError("Dataset with the same id already exists");
+		// 	}
+		// }
+		//
+		// // Process and save the dataset
+		// const sections = await this.processZipFile(content);
+		//
+		// // Save the processed data to disk
+		// const filePath = path.join(this.dataDir, `${id}.json`);
+		// await fs.writeJson(filePath, JSON.stringify(sections));
+		//
+		// // Add the datasets object
+		// this.datasets.push(
+		// 	{
+		// 		id,
+		// 		kind,
+		// 		numRows: sections.length
+		// 	}
+		// );
+		//
+		// // Return the list of currently added datasets
+		// const ids: string[] = [];
+		//
+		// for (let dataset of this.datasets) {
+		// 	ids.push(dataset.id);
+		// }
+		//
+		// return ids;
+		return Promise.resolve([]);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
@@ -118,7 +149,261 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
-		return Promise.reject("Not implemented.");
+		const queryModel: Query = query as Query;
+		if (!this.validateQuery(queryModel)) {
+			return Promise.reject(new InsightError());
+		}
+		return Promise.reject("not implemented");
+	}
+
+	public validateAnd(AND: Where[]) {
+		if (AND.length === 0) {
+			return false;
+		} else {
+			for (const item of AND) {
+				if (!this.validateQueryWhere(item)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	public validateOr(OR: Where[]): boolean {
+		if (OR.length === 0) {
+			return false;
+		} else {
+			for (const item of OR) {
+				if (!this.validateQueryWhere(item)) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	public validateNot(NOT: Where): boolean {
+		if (Object.keys(NOT).length !== 1) {
+			return false;
+		}
+		return this.validateQueryWhere(NOT);
+	}
+
+	public validateGT(GT: object) {
+		if (Object.keys(GT).length !== 1) {
+			return false;
+		}
+		const mKey: string = Object.keys(GT)[0];
+		const underscoreIndex = mKey.indexOf("_");
+		if (underscoreIndex === -1) {
+			return false;
+		}
+		const idString = mKey.substring(0, underscoreIndex);
+		const mField = mKey.substring(underscoreIndex + 1);
+		const ids: string[] = [];
+		for (let dataset of this.datasets) {
+			ids.push(dataset.id);
+		}
+		if (this.initialMorSKey === "_") {
+			this.initialMorSKey = idString;
+		} else {
+			if (this.initialMorSKey !== idString) {
+				return false;
+			}
+		}
+		if (!ids.includes(idString)) {
+			return false;
+		}
+		const possibleMField: string[] = ["avg", "pass", "fail", "audit", "year"];
+		if (!possibleMField.includes(mField)) {
+			return false;
+		}
+		if (typeof (GT as any)[mKey] !== "number") {
+			return false;
+		}
+		this.listOfMorSKey.push(mKey);
+		return true;
+	}
+
+	public validateLT(LT: object) {
+		if (Object.keys(LT).length !== 1) {
+			return false;
+		}
+		const mKey: string = Object.keys(LT)[0];
+		const underscoreIndex = mKey.indexOf("_");
+		if (underscoreIndex === -1) {
+			return false;
+		}
+		const idString = mKey.substring(0, underscoreIndex);
+		const mField = mKey.substring(underscoreIndex + 1);
+		const ids: string[] = [];
+		for (let dataset of this.datasets) {
+			ids.push(dataset.id);
+		}
+		if (this.initialMorSKey === "_") {
+			this.initialMorSKey = idString;
+		} else {
+			if (this.initialMorSKey !== idString) {
+				return false;
+			}
+		}
+		if (!ids.includes(idString)) {
+			return false;
+		}
+		const possibleMField: string[] = ["avg", "pass", "fail", "audit", "year"];
+		if(!possibleMField.includes(mField)) {
+			return false;
+		}
+		if (typeof (LT as any)[mKey] !== "number") {
+			return false;
+		}
+		this.listOfMorSKey.push(mKey);
+		return true;
+	}
+
+	public validateEQ(EQ: object) {
+		if (Object.keys(EQ).length !== 1) {
+			return false;
+		}
+		const mKey: string = Object.keys(EQ)[0];
+		const underscoreIndex = mKey.indexOf("_");
+		if (underscoreIndex === -1) {
+			return false;
+		}
+		const idString = mKey.substring(0, underscoreIndex);
+		const mField = mKey.substring(underscoreIndex + 1);
+		const ids: string[] = [];
+		for (let dataset of this.datasets) {
+			ids.push(dataset.id);
+		}
+		if (this.initialMorSKey === "_") {
+			this.initialMorSKey = idString;
+		} else {
+			if (this.initialMorSKey !== idString) {
+				return false;
+			}
+		}
+		if (!ids.includes(idString)) {
+			return false;
+		}
+		const possibleMField: string[] = ["avg", "pass", "fail", "audit", "year"];
+		if(!possibleMField.includes(mField)) {
+			return false;
+		}
+		if (typeof (EQ as any)[mKey] !== "number") {
+			return false;
+		}
+		this.listOfMorSKey.push(mKey);
+		return true;
+	}
+
+	public validateIS(IS: object) {
+		{
+			if (Object.keys(IS).length !== 1) {
+				return false;
+			}
+			const sKey: string = Object.keys(IS)[0];
+			const underscoreIndex = sKey.indexOf("_");
+			if (underscoreIndex === -1) {
+				return false;
+			}
+			const idString = sKey.substring(0, underscoreIndex);
+			const sField = sKey.substring(underscoreIndex + 1);
+			const ids: string[] = [];
+			for (let dataset of this.datasets) {
+				ids.push(dataset.id);
+			}
+			if (this.initialMorSKey === "_") {
+				this.initialMorSKey = idString;
+			} else {
+				if (this.initialMorSKey !== idString) {
+					return false;
+				}
+			}
+			if (!ids.includes(idString)) {
+				return false;
+			}
+			const possibleSField: string[] = ["dept", "id", "instructor", "title", "uuid"];
+			if(!possibleSField.includes(sField)) {
+				return false;
+			}
+			if (typeof (IS as any)[sKey] !== "string") {
+				return false;
+			}
+			const sValue: string = (IS as any)[sKey].substring(1, (IS as any)[sKey].length - 1);
+			if (sValue.indexOf("*") !== -1) {
+				return false;
+			}
+			this.listOfMorSKey.push(sKey);
+			return true;
+		}
+	}
+
+	public validateQueryWhere(whereBlock: Where): boolean {
+		if (whereBlock.AND !== undefined) {
+			return this.validateAnd(whereBlock.AND);
+		} else if (whereBlock.OR !== undefined) {
+			return this.validateOr(whereBlock.OR);
+		} else if (whereBlock.NOT !== undefined) {
+			return this.validateNot(whereBlock.NOT);
+		} else if (whereBlock.GT !== undefined) {
+			return this.validateGT(whereBlock.GT);
+		} else if (whereBlock.LT !== undefined) {
+			return this.validateLT(whereBlock.LT);
+		} else if (whereBlock.EQ !== undefined) {
+			return this.validateEQ(whereBlock.EQ);
+		} else if (whereBlock.IS !== undefined) {
+			return this.validateIS(whereBlock.IS);
+		} else if (Object.keys(whereBlock).length === 0) {
+			return true;
+		}
+		return false;
+	}
+
+	public validateQueryOption(optionBlock: Option): boolean {
+		if (optionBlock.COLUMNS === undefined) {
+			return false;
+		} else {
+			if (optionBlock.ORDER !== undefined) {
+				return this.validateColumns(optionBlock.COLUMNS) &&
+					this.validateOrder(optionBlock.ORDER, optionBlock.COLUMNS);
+			}
+			return this.validateColumns((optionBlock.COLUMNS));
+			// eslint-disable-next-line max-lines
+		}
+	}
+
+	public validateColumns(COLUMNS: string[]): boolean {
+		if (COLUMNS.length === 0) {
+			return false;
+		}
+		for (const column of COLUMNS) {
+			if (!this.listOfMorSKey.includes(column)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public validateOrder(Order: string, COLUMNS: string[]): boolean {
+		if (!COLUMNS.includes(Order)) {
+			return false;
+		}
+		return true;
+	}
+
+	public validateQuery(queryModel: Query) {
+		if(queryModel.WHERE == null) {
+			return false;
+		} else if(queryModel.OPTIONS == null) {
+			return false;
+		} else {
+			const isValid: boolean = this.validateQueryWhere(queryModel.WHERE) &&
+				this.validateQueryOption(queryModel.OPTIONS);
+			this.initialMorSKey = "_";
+			this.listOfMorSKey = [];
+			return isValid;
+		}
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
