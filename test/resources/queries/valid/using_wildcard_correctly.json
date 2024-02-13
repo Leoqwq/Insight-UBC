@@ -1,9 +1,9 @@
 {
-	"title": "simple_pass",
+	"title": "using_wildcard_correctly",
 	"input": {
 		"WHERE": {
 			"IS": {
-				"sections_dept": "zool"
+				"sections_dept": "zo*"
 			}
 		},
 		"OPTIONS": {

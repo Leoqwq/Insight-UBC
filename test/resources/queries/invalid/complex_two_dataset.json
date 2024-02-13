@@ -1,0 +1,38 @@
+{
+	"title": "complex_two_dataset",
+	"input": {
+		"WHERE": {
+			"OR": [
+				{
+					"AND": [
+						{
+							"GT": {
+								"sections_avg": 90
+							}
+						},
+						{
+							"IS": {
+								"ubc_dept": "adhe"
+							}
+						}
+					]
+				},
+				{
+					"EQ": {
+						"sections_avg": 95
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"ubc_dept",
+				"ubc_id",
+				"ubc_avg"
+			],
+			"ORDER": "ubc_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

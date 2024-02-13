@@ -1,13 +1,14 @@
 import {
 	IInsightFacade,
 	InsightDatasetKind,
-	InsightError
+	InsightError, NotFoundError
 } from "../../src/controller/IInsightFacade";
 import InsightFacade from "../../src/controller/InsightFacade";
 
 import {assert, expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives, readFileQueries} from "../TestUtil";
+import {describe} from "mocha";
 
 use(chaiAsPromised);
 
@@ -50,6 +51,50 @@ describe("InsightFacade", function () {
 			const result = facade.addDataset("", sections, InsightDatasetKind.Sections);
 
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+	});
+	describe("removeDataset",  ()=> {
+		let insightFacade: InsightFacade;
+
+		before(async function() {
+			sections = await getContentFromArchives("courses.zip");
+		});
+
+		beforeEach(async function() {
+			await clearDisk();
+			insightFacade = new InsightFacade();
+		});
+
+		it("should reject due to empty datasets", async () => {
+			const result = insightFacade.removeDataset("1");
+			return expect(result).to.eventually.be.rejectedWith(NotFoundError);
+		});
+
+		it("should reject due to invalid id", async () => {
+			const result = insightFacade.removeDataset("");
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject due to invalid id with _", async () => {
+			const result = insightFacade.removeDataset("_");
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject due to invalid id with only whitespace", async () => {
+			const result = insightFacade.removeDataset(" ");
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject due to not found", async () => {
+			await insightFacade.addDataset("1", sections, InsightDatasetKind.Sections);
+			const result = insightFacade.removeDataset("a");
+			return expect(result).to.eventually.be.rejectedWith(NotFoundError);
+		});
+
+		it("should be resolved", async () => {
+			await insightFacade.addDataset("1", sections, InsightDatasetKind.Sections);
+			const result = insightFacade.removeDataset("1");
+			return expect(result).to.eventually.equal("1");
 		});
 	});
 
