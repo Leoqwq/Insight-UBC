@@ -1,0 +1,19 @@
+{
+	"title": "referencesDatasetNotAdded",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"biol_avg": 97
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"biol_dept",
+				"biol_avg"
+			],
+			"ORDER": "biol_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
