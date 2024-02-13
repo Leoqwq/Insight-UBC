@@ -1,0 +1,13 @@
+{
+	"title": "underscoreIDString",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"__dept"
+			]
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
