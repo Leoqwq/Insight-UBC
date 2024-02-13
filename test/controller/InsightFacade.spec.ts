@@ -1,13 +1,14 @@
 import {
 	IInsightFacade,
 	InsightDatasetKind,
-	InsightError
+	InsightError, NotFoundError
 } from "../../src/controller/IInsightFacade";
 import InsightFacade from "../../src/controller/InsightFacade";
 
 import {assert, expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives, readFileQueries} from "../TestUtil";
+import {describe} from "mocha";
 
 use(chaiAsPromised);
 
@@ -50,6 +51,69 @@ describe("InsightFacade", function () {
 			const result = facade.addDataset("", sections, InsightDatasetKind.Sections);
 
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject with  an _ dataset id", async function () {
+			const result = facade.addDataset("_", sections, InsightDatasetKind.Sections);
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject with a whitespace dataset id", async function () {
+			const result = facade.addDataset(" ", sections, InsightDatasetKind.Sections);
+
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject with duplicate dataset id", async function () {
+			await facade.addDataset("a", sections, InsightDatasetKind.Sections);
+			const result = facade.addDataset("a", sections, InsightDatasetKind.Sections);
+
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should resolve with valid id", async function () {
+			const result = facade.addDataset("a", sections, InsightDatasetKind.Sections);
+
+			return expect(result).to.eventually.deep.equal(["a"]);
+		});
+	});
+
+	describe("removeDataset",  ()=> {
+
+		beforeEach(function () {
+			// This section resets the insightFacade instance
+			// This runs before each test
+			facade = new InsightFacade();
+		});
+
+		afterEach(async function () {
+			await clearDisk();
+		});
+
+		it("should reject due to empty datasets", async () => {
+			const result = facade.removeDataset("1");
+			return expect(result).to.eventually.be.rejectedWith(NotFoundError);
+		});
+
+		it("should reject due to invalid id", async () => {
+			const result = facade.removeDataset("");
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject due to invalid id with _", async () => {
+			const result = facade.removeDataset("_");
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject due to invalid id with only whitespace", async () => {
+			const result = facade.removeDataset(" ");
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should be resolved", async () => {
+			await facade.addDataset("1", sections, InsightDatasetKind.Sections);
+			const result = facade.removeDataset("1");
+			return expect(result).to.eventually.equal("1");
 		});
 	});
 
