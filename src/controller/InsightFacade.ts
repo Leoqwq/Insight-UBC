@@ -51,50 +51,51 @@ export default class InsightFacade implements IInsightFacade {
 	private readonly helperFunctions: HelperFunctions;
 
 	constructor() {
-		this.datasets = [{id: "sections", kind: InsightDatasetKind.Sections, numRows: 1},
-			{id: "ubc", kind: InsightDatasetKind.Sections, numRows: 1}];
+		this.datasets = [];
 		console.log("InsightFacadeImpl::init()");
 		this.helperFunctions = new HelperFunctions(this.datasets);
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		// // Validate the id
-		// if (!id || id.trim().length === 0 || id.includes("_")) {
-		// 	throw new InsightError("Invalid id");
-		// }
-		//
-		// // Check if the dataset with the same id already exists
-		// for (let dataset of this.datasets) {
-		// 	if (dataset.id === id) {
-		// 		throw new InsightError("Dataset with the same id already exists");
-		// 	}
-		// }
-		//
-		// // Process and save the dataset
-		// const sections = await this.processZipFile(content);
-		//
-		// // Save the processed data to disk
-		// const filePath = path.join(this.dataDir, `${id}.json`);
-		// await fs.writeJson(filePath, JSON.stringify(sections));
-		//
-		// // Add the datasets object
-		// this.datasets.push(
-		// 	{
-		// 		id,
-		// 		kind,
-		// 		numRows: sections.length
-		// 	}
-		// );
-		//
-		// // Return the list of currently added datasets
-		// const ids: string[] = [];
-		//
-		// for (let dataset of this.datasets) {
-		// 	ids.push(dataset.id);
-		// }
-		//
-		// return ids;
-		return Promise.resolve([]);
+		// Validate the id
+		if (!id || id.trim().length === 0 || id.includes("_")) {
+			throw new InsightError("Invalid id");
+		}
+
+		// Check if the dataset with the same id already exists
+		for (let dataset of this.datasets) {
+			if (dataset.id === id) {
+				throw new InsightError("Dataset with the same id already exists");
+			}
+		}
+
+		// Process and save the dataset
+		const sections = await this.processZipFile(content);
+
+		// Ensure the data directory exists
+		await fs.ensureDir(this.dataDir);
+
+		// Save the processed data to disk
+		const filePath = path.join(this.dataDir, `${id}.json`);
+		await fs.writeJson(filePath, JSON.stringify(sections));
+
+		// Add the datasets object
+		this.datasets.push(
+			{
+				id,
+				kind,
+				numRows: sections.length
+			}
+		);
+
+		// Return the list of currently added datasets
+		const ids: string[] = [];
+
+		for (let dataset of this.datasets) {
+			ids.push(dataset.id);
+		}
+
+		return ids;
 	}
 
 	public async removeDataset(id: string): Promise<string> {
@@ -124,14 +125,6 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	public async performQuery(query: unknown): Promise<InsightResult[]> {
-		const queryModel: Query = query as Query;
-		if (!this.helperFunctions.validateQuery(queryModel)) {
-			return Promise.reject(new InsightError());
-		}
-		return Promise.reject("not implemented");
-	}
-
 	public async listDatasets(): Promise<InsightDataset[]> {
 		return Promise.resolve(this.datasets);
 	}
@@ -142,8 +135,12 @@ export default class InsightFacade implements IInsightFacade {
 		const sectionPromises: Array<Promise<Section[]>> = [];
 
 		for (const [relativePath, file] of Object.entries(zip.files)) {
-			const sectionPromise = this.extractSections(file);
-			sectionPromises.push(sectionPromise);
+			if (file.dir) {
+				// Skip courses directory
+			} else {
+				const sectionPromise = this.extractSections(file);
+				sectionPromises.push(sectionPromise);
+			}
 		}
 
 		// Use Promise.all to wait for all async calls to complete
@@ -165,8 +162,6 @@ export default class InsightFacade implements IInsightFacade {
 		// Extract the "result" array from the JSON object
 		const resultArray = jsonObject.result;
 
-		console.log(resultArray);
-
 		const sections: Section[] = [];
 
 		resultArray.forEach((obj: any, index: any) => {
@@ -185,5 +180,13 @@ export default class InsightFacade implements IInsightFacade {
 		});
 
 		return sections;
+	}
+
+	public async performQuery(query: unknown): Promise<InsightResult[]> {
+		const queryModel: Query = query as Query;
+		if (!this.helperFunctions.validateQuery(queryModel)) {
+			return Promise.reject(new InsightError());
+		}
+		return Promise.reject("not implemented");
 	}
 }
