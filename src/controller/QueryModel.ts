@@ -246,7 +246,6 @@ export default class HelperFunctions{
 					this.validateOrder(optionBlock.ORDER, optionBlock.COLUMNS);
 			}
 			return this.validateColumns((optionBlock.COLUMNS));
-			// eslint-disable-next-line max-lines
 		}
 	}
 
