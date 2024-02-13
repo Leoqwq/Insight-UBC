@@ -187,6 +187,6 @@ export default class InsightFacade implements IInsightFacade {
 		if (!this.helperFunctions.validateQuery(queryModel)) {
 			return Promise.reject(new InsightError());
 		}
-		return Promise.reject(new InsightError());
+		return Promise.reject("not implemented");
 	}
 }

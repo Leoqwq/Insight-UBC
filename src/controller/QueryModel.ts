@@ -28,7 +28,6 @@ export default class HelperFunctions{
 
 	private datasets: InsightDataset[];
 	public initialMorSKey: string = "_";
-	public listOfMorSKey: string[] = [];
 	constructor(datasets: InsightDataset[]) {
 		this.datasets = datasets;
 	}
@@ -98,7 +97,6 @@ export default class HelperFunctions{
 		if (typeof (GT as any)[mKey] !== "number") {
 			return false;
 		}
-		this.listOfMorSKey.push(mKey);
 		return true;
 	}
 
@@ -134,7 +132,6 @@ export default class HelperFunctions{
 		if (typeof (LT as any)[mKey] !== "number") {
 			return false;
 		}
-		this.listOfMorSKey.push(mKey);
 		return true;
 	}
 
@@ -170,7 +167,6 @@ export default class HelperFunctions{
 		if (typeof (EQ as any)[mKey] !== "number") {
 			return false;
 		}
-		this.listOfMorSKey.push(mKey);
 		return true;
 	}
 
@@ -211,7 +207,6 @@ export default class HelperFunctions{
 			if (sValue.indexOf("*") !== -1) {
 				return false;
 			}
-			this.listOfMorSKey.push(sKey);
 			return true;
 		}
 	}
@@ -254,7 +249,29 @@ export default class HelperFunctions{
 			return false;
 		}
 		for (const column of COLUMNS) {
-			if (!this.listOfMorSKey.includes(column)) {
+			const underscoreIndex = column.indexOf("_");
+			if (underscoreIndex === -1) {
+				return false;
+			}
+			const idString = column.substring(0, underscoreIndex);
+			const mField = column.substring(underscoreIndex + 1);
+			const ids: string[] = [];
+			for (let dataset of this.datasets) {
+				ids.push(dataset.id);
+			}
+			if (this.initialMorSKey === "_") {
+				this.initialMorSKey = idString;
+			} else {
+				if (this.initialMorSKey !== idString) {
+					return false;
+				}
+			}
+			if (!ids.includes(idString)) {
+				return false;
+			}
+			const possibleKey: string[] = ["avg", "pass", "fail", "audit", "year",
+				"dept", "id", "instructor", "title", "uuid"];
+			if(!possibleKey.includes(mField)) {
 				return false;
 			}
 		}
@@ -277,7 +294,6 @@ export default class HelperFunctions{
 			const isValid: boolean = this.validateQueryWhere(queryModel.WHERE) &&
 				this.validateQueryOption(queryModel.OPTIONS);
 			this.initialMorSKey = "_";
-			this.listOfMorSKey = [];
 			return isValid;
 		}
 	}
