@@ -4,13 +4,14 @@ import {
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	NotFoundError
+	NotFoundError, ResultTooLargeError
 } from "./IInsightFacade";
 import jszip from "jszip";
 import * as fs from "fs-extra";
 import path from "path";
 import {symlinkSync} from "fs";
-import HelperFunctions, {Option, Query, Where} from "./QueryModel";
+import ValidationHelpers, {Option, Query, Where} from "./QueryModel";
+import ValidQueryHelpers from "./ValidQueryHelpers";
 
 
 /**
@@ -48,12 +49,14 @@ export class Section {
 export default class InsightFacade implements IInsightFacade {
 	private readonly datasets: InsightDataset[];
 	private readonly dataDir: string = "./data"; // Directory to store the processed datasets
-	private readonly helperFunctions: HelperFunctions;
+	private readonly validationHelpers: ValidationHelpers;
+	private readonly validQueryHelpers: ValidQueryHelpers;
 
 	constructor() {
 		this.datasets = [];
 		console.log("InsightFacadeImpl::init()");
-		this.helperFunctions = new HelperFunctions(this.datasets);
+		this.validationHelpers = new ValidationHelpers(this.datasets);
+		this.validQueryHelpers = new ValidQueryHelpers();
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
@@ -215,11 +218,69 @@ export default class InsightFacade implements IInsightFacade {
 		return sections;
 	}
 
+
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		const queryModel: Query = query as Query;
-		if (!this.helperFunctions.validateQuery(queryModel)) {
+		if (!this.validationHelpers.validateQuery(queryModel)) {
 			return Promise.reject(new InsightError());
 		}
-		return Promise.reject("not implemented");
+		const targetDatasetId: string = this.validQueryHelpers.findDatasetId(queryModel);
+		const filePath = path.join(this.dataDir, `${targetDatasetId}.json`);
+		let data = await fs.readJson(filePath);
+		data = JSON.parse(data);
+		console.log(data[0]);
+		const dataToBeReturned = this.validQueryHelpers.filterResult(queryModel, data);
+		if (dataToBeReturned.length > 5000) {
+			return Promise.reject(new ResultTooLargeError());
+		}
+		if (queryModel.OPTIONS.ORDER === undefined) {
+			for (const d of dataToBeReturned) {
+				console.log(d);
+			}
+			return dataToBeReturned;
+		} else {
+			const data1 = this.applyOrder(dataToBeReturned, queryModel.OPTIONS.ORDER, queryModel);
+			for (const d of data1) {
+				console.log(d);
+			}
+			return data1;
+		}
+	}
+
+	public applyOrder(data: InsightResult[], order: string, queryModel: Query): InsightResult[] {
+		switch (order) {
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "audit":
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "avg":
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "year":
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "pass":
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "fail":
+				return this.sortNumeric(data, order);
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "uuid":
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "dept":
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "id":
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "title":
+			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "instructor":
+				return this.sortAlphabetic(data, order);
+			default:
+				return data;
+		}
+	}
+
+	private sortNumeric(data: InsightResult[], order: string): InsightResult[] {
+		return data.sort((a, b) => {
+			return (a[order] as any) - (b[order] as any);
+		});
+	}
+
+	private sortAlphabetic(data: InsightResult[], order: string): InsightResult[] {
+		return data.sort((a, b) => {
+			if (a[order] < b[order]) {
+				return -1;
+			} else if (a[order] > b[order]) {
+				return 1;
+			} else {
+				return 0;
+			}
+		});
 	}
 }

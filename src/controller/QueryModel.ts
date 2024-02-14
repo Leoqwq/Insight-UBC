@@ -24,7 +24,7 @@ export interface Option {
 	ORDER?: string;
 }
 
-export default class HelperFunctions{
+export default class ValidationHelpers {
 
 	private datasets: InsightDataset[];
 	public initialMorSKey: string = "_";
