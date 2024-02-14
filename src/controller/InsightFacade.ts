@@ -69,8 +69,18 @@ export default class InsightFacade implements IInsightFacade {
 			}
 		}
 
+		// Check dataset kind
+		if (kind !== "sections") {
+			throw new InsightError("Invalid dataset kind");
+		}
+
 		// Process and save the dataset
 		const sections = await this.processZipFile(content);
+
+		// Check there is at least one valid section in the dataset
+		if (sections.length === 0) {
+			throw new InsightError("No valid sections found in the dataset");
+		}
 
 		// Ensure the data directory exists
 		await fs.ensureDir(this.dataDir);
@@ -131,7 +141,12 @@ export default class InsightFacade implements IInsightFacade {
 
 	// Helpers
 	private async processZipFile(zipContent: string): Promise<Section[]> {
-		const zip = await jszip.loadAsync(zipContent, {base64: true});
+		let zip: jszip;
+		try {
+			zip = await jszip.loadAsync(zipContent, {base64: true});
+		} catch (e) {
+			throw new InsightError("Not structured as a base64 string of a zip file");
+		}
 		const sectionPromises: Array<Promise<Section[]>> = [];
 
 		for (const [relativePath, file] of Object.entries(zip.files)) {
@@ -157,7 +172,12 @@ export default class InsightFacade implements IInsightFacade {
 		const fileContent = await file.async("string");
 
 		// Parse the string into a JSON object
-		const jsonObject = JSON.parse(fileContent);
+		let jsonObject;
+		try {
+			jsonObject = JSON.parse(fileContent);
+		} catch (e) {
+			throw new InsightError("Not JSON formatted file");
+		}
 
 		// Extract the "result" array from the JSON object
 		const resultArray = jsonObject.result;
@@ -165,6 +185,14 @@ export default class InsightFacade implements IInsightFacade {
 		const sections: Section[] = [];
 
 		resultArray.forEach((obj: any, index: any) => {
+			// Check if any field is missing
+			if (obj.id === undefined || obj.Course === undefined || obj.Title === undefined
+				|| obj.Professor === undefined || obj.Subject === undefined || obj.Year === undefined
+			|| obj.Avg === undefined || obj.Pass === undefined || obj.Fail === undefined
+			|| obj.Audit === undefined) {
+				return;
+			}
+
 			const uuid = obj.id;
 			const id = obj.Course;
 			const title = obj.Title;
@@ -175,6 +203,11 @@ export default class InsightFacade implements IInsightFacade {
 			const pass = obj.Pass;
 			const fail = obj.Fail;
 			const audit = obj.Audit;
+
+			// Check for any casting error
+			if (isNaN(year) || isNaN(avg) || isNaN(pass) || isNaN(fail) || isNaN(audit)) {
+				return;
+			}
 
 			sections.push(new Section(uuid, id, title, instructor, dept, year, avg, pass, fail, audit));
 		});
