@@ -34,39 +34,41 @@ export default class ValidQueryHelpers {
 			// }
 			return this.handleGT(query, query.WHERE.GT, dataset);
 		} else if (query.WHERE.LT !== undefined) {
-			const key = Object.keys(query.WHERE.LT)[0];
-			const i = key.indexOf("_");
-			const field = key.substring(i + 1, key.length);
-			const ltObject = query.WHERE.LT;
-			const ltArray = Object.entries(ltObject);
-			const value = ltArray[0][1];
-			const attributes = this.getAttributes(query.OPTIONS.COLUMNS);
-			for (const element of dataset) {
-				if (this.findElementValue(field, element) < value) {
-					let resultElement: InsightResult = {};
-					for (const attribute of attributes) {
-						resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
-					}
-					returnResult.push(resultElement);
-				}
-			}
+			// const key = Object.keys(query.WHERE.LT)[0];
+			// const i = key.indexOf("_");
+			// const field = key.substring(i + 1, key.length);
+			// const ltObject = query.WHERE.LT;
+			// const ltArray = Object.entries(ltObject);
+			// const value = ltArray[0][1];
+			// const attributes = this.getAttributes(query.OPTIONS.COLUMNS);
+			// for (const element of dataset) {
+			// 	if (this.findElementValue(field, element) < value) {
+			// 		let resultElement: InsightResult = {};
+			// 		for (const attribute of attributes) {
+			// 			resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
+			// 		}
+			// 		returnResult.push(resultElement);
+			// 	}
+			// }
+			return this.handleLT(query, query.WHERE.LT, dataset);
 		} else if (query.WHERE.EQ !== undefined) {
-			const key = Object.keys(query.WHERE.EQ)[0];
-			const i = key.indexOf("_");
-			const field = key.substring(i + 1, key.length);
-			const eqObject = query.WHERE.EQ;
-			const eqArray = Object.entries(eqObject);
-			const value = eqArray[0][1];
-			const attributes = this.getAttributes(query.OPTIONS.COLUMNS);
-			for (const element of dataset) {
-				if (this.findElementValue(field, element) === value) {
-					let resultElement: InsightResult = {};
-					for (const attribute of attributes) {
-						resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
-					}
-					returnResult.push(resultElement);
-				}
-			}
+			// const key = Object.keys(query.WHERE.EQ)[0];
+			// const i = key.indexOf("_");
+			// const field = key.substring(i + 1, key.length);
+			// const eqObject = query.WHERE.EQ;
+			// const eqArray = Object.entries(eqObject);
+			// const value = eqArray[0][1];
+			// const attributes = this.getAttributes(query.OPTIONS.COLUMNS);
+			// for (const element of dataset) {
+			// 	if (this.findElementValue(field, element) === value) {
+			// 		let resultElement: InsightResult = {};
+			// 		for (const attribute of attributes) {
+			// 			resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
+			// 		}
+			// 		returnResult.push(resultElement);
+			// 	}
+			// }
+			return this.handleEQ(query,query.WHERE.EQ, dataset);
 		}
 		return returnResult;
 	}
@@ -81,6 +83,46 @@ export default class ValidQueryHelpers {
 		const attributes = this.getAttributes(query.OPTIONS.COLUMNS);
 		for (const element of dataset) {
 			if (this.findElementValue(field, element) > value) {
+				let resultElement: InsightResult = {};
+				for (const attribute of attributes) {
+					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
+				}
+				returnResult.push(resultElement);
+			}
+		}
+		return returnResult;
+	}
+
+	public handleLT(query: Query, lt: object, dataset: any): InsightResult[] {
+		const returnResult: InsightResult[] = [];
+		const key = Object.keys(lt)[0];
+		const i = key.indexOf("_");
+		const field = key.substring(i + 1, key.length);
+		const ltArray = Object.entries(lt);
+		const value: number = ltArray[0][1];
+		const attributes = this.getAttributes(query.OPTIONS.COLUMNS);
+		for (const element of dataset) {
+			if (this.findElementValue(field, element) < value) {
+				let resultElement: InsightResult = {};
+				for (const attribute of attributes) {
+					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
+				}
+				returnResult.push(resultElement);
+			}
+		}
+		return returnResult;
+	}
+
+	public handleEQ(query: Query, eq: object, dataset: any): InsightResult[] {
+		const returnResult: InsightResult[] = [];
+		const key = Object.keys(eq)[0];
+		const i = key.indexOf("_");
+		const field = key.substring(i + 1, key.length);
+		const eqArray = Object.entries(eq);
+		const value: number = eqArray[0][1];
+		const attributes = this.getAttributes(query.OPTIONS.COLUMNS);
+		for (const element of dataset) {
+			if (this.findElementValue(field, element) === value) {
 				let resultElement: InsightResult = {};
 				for (const attribute of attributes) {
 					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];

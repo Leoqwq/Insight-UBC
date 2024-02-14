@@ -228,21 +228,21 @@ export default class InsightFacade implements IInsightFacade {
 		const filePath = path.join(this.dataDir, `${targetDatasetId}.json`);
 		let data = await fs.readJson(filePath);
 		data = JSON.parse(data);
-		console.log(data[0]);
+		// console.log(data[0]);
 		const dataToBeReturned = this.validQueryHelpers.filterResult(queryModel, data);
 		if (dataToBeReturned.length > 5000) {
 			return Promise.reject(new ResultTooLargeError());
 		}
 		if (queryModel.OPTIONS.ORDER === undefined) {
-			for (const d of dataToBeReturned) {
-				console.log(d);
-			}
+			// for (const d of dataToBeReturned) {
+			// 	console.log(d);
+			// }
 			return dataToBeReturned;
 		} else {
 			const data1 = this.applyOrder(dataToBeReturned, queryModel.OPTIONS.ORDER, queryModel);
-			for (const d of data1) {
-				console.log(d);
-			}
+			// for (const d of data1) {
+			// 	console.log(d);
+			// }
 			return data1;
 		}
 	}
