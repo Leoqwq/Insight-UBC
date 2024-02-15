@@ -224,22 +224,27 @@ export default class InsightFacade implements IInsightFacade {
 		if (!this.validationHelpers.validateQuery(queryModel)) {
 			return Promise.reject(new InsightError());
 		}
+		// console.log("valid");
 		const targetDatasetId: string = this.validQueryHelpers.findDatasetId(queryModel);
 		const filePath = path.join(this.dataDir, `${targetDatasetId}.json`);
 		let data = await fs.readJson(filePath);
 		data = JSON.parse(data);
 		// console.log(data[0]);
-		const dataToBeReturned = this.validQueryHelpers.filterResult(queryModel, data);
+		const dataToBeReturned = this.validQueryHelpers.filterResult(data, queryModel.WHERE, targetDatasetId);
+		// console.log(dataToBeReturned);
 		if (dataToBeReturned.length > 5000) {
+			// console.log("haha found ya");
 			return Promise.reject(new ResultTooLargeError());
 		}
 		if (queryModel.OPTIONS.ORDER === undefined) {
 			// for (const d of dataToBeReturned) {
 			// 	console.log(d);
 			// }
-			return dataToBeReturned;
+			return this.validQueryHelpers.filterColumns(queryModel, dataToBeReturned, targetDatasetId);
 		} else {
-			const data1 = this.applyOrder(dataToBeReturned, queryModel.OPTIONS.ORDER, queryModel);
+			// console.log("hello");
+			const data1 = this.applyOrder(this.validQueryHelpers.filterColumns(queryModel,
+				dataToBeReturned, targetDatasetId), queryModel.OPTIONS.ORDER, queryModel);
 			// for (const d of data1) {
 			// 	console.log(d);
 			// }
