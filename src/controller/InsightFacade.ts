@@ -234,6 +234,7 @@ export default class InsightFacade implements IInsightFacade {
 		// console.log(dataToBeReturned);
 		if (dataToBeReturned.length > 5000) {
 			// console.log("haha found ya");
+			console.log(dataToBeReturned[0]);
 			return Promise.reject(new ResultTooLargeError());
 		}
 		if (queryModel.OPTIONS.ORDER === undefined) {
