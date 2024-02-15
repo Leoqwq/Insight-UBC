@@ -1,6 +1,7 @@
 import {Query, Where} from "./QueryModel";
 import {InsightDataset, InsightError, InsightResult, ResultTooLargeError} from "./IInsightFacade";
 import {Section} from "./InsightFacade";
+import e from "express";
 
 export default class ValidQueryHelpers {
 
@@ -10,11 +11,31 @@ export default class ValidQueryHelpers {
 		return keyPair.substring(0,underscoreIndex);
 	}
 
-	public filterResult(dataset: any, where: Where, id: string): InsightResult[] {
+	public getAll(dataset: any, id: string) {
+		const returnResult: InsightResult[] = [];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		for (const element of dataset) {
+			let resultElement: InsightResult = {};
+			for (const attribute of attributes) {
+				resultElement[id + "_" + attribute] = element[attribute];
+				returnResult.push(resultElement);
+			}
+		}
+		return returnResult;
+	}
 
+	public filterResult(dataset: any, where: Where, id: string): InsightResult[] {
 		const returnResult: InsightResult[] = [];
 		if (Object.keys(where).length === 0) {
-			return dataset;
+			const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+			for (const element of dataset) {
+				let resultElement: InsightResult = {};
+				for (const attribute of attributes) {
+					resultElement[id + "_" + attribute] = element[attribute];
+					returnResult.push(resultElement);
+				}
+			}
+			return returnResult;
 		}
 		if (where.GT !== undefined) {
 			return this.handleGT(where.GT, dataset);
@@ -52,7 +73,7 @@ export default class ValidQueryHelpers {
 		const value: string = array[0][1];
 		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
 		for (const element of dataset) {
-			if (this.isEqual(this.findElementValue(field, element) as string, value)) {
+			if (this.satisfy(this.findElementValue(field, element) as string, value)) {
 				let resultElement: InsightResult = {};
 				for (const attribute of attributes) {
 					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
@@ -63,7 +84,7 @@ export default class ValidQueryHelpers {
 		return returnResult;
 	}
 
-	public isEqual(field: string, val: string): boolean {
+	public satisfy(field: string, val: string): boolean {
 		if (val[0] === "*" && val[val.length - 1] === "*") {
 			const part = val.substring(1, val.length - 1);
 			return field.includes(part);
@@ -174,20 +195,20 @@ export default class ValidQueryHelpers {
 	}
 
 	public handleNOT(not: Where, dataset: any, id: string): InsightResult[] {
-		const all = dataset;
-		const dataToExclude: InsightResult[] = this.filterResult(dataset, not, id);
-		const results: InsightResult[] = [];
-		const key = id;
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
-		for (const element of all) {
-			if (!this.arrayContainsObject(dataToExclude, element, key)) {
-				let resultElement: InsightResult = {};
-				for (const attribute of attributes) {
-					resultElement[key + "_" + attribute] = element[attribute];
-				}
-				results.push(resultElement);
-			}
-		}
+		// const all = dataset;
+		// const dataToExclude: InsightResult[] = this.filterResult(dataset, not, id);
+		let results: InsightResult[] = [];
+		// const key = id;
+		// const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		// for (const element of all) {
+		// 	if (!this.arrayContainsObject(dataToExclude, element, key)) {
+		// 		let resultElement: InsightResult = {};
+		// 		for (const attribute of attributes) {
+		// 			resultElement[key + "_" + attribute] = element[attribute];
+		// 		}
+		// 		results.push(resultElement);
+		// 	}
+		// }
 		return results;
 	}
 
