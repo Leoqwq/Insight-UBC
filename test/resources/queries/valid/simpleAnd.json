@@ -1,16 +1,16 @@
 {
-	"title": "simpleAnd",
+	"title": "simpleAND",
 	"input": {
 		"WHERE": {
 			"AND": [
 				{
-					"IS": {
-						"sections_dept": "nurs"
+					"GT": {
+						"sections_avg": 90
 					}
 				},
 				{
-					"GT": {
-						"sections_avg": 98
+					"IS": {
+						"sections_dept": "adhe"
 					}
 				}
 			]
@@ -27,44 +27,79 @@
 	"errorExpected": false,
 	"expected": [
 		{
-			"sections_dept": "nurs",
-			"sections_title": "cl pro prim care",
-			"sections_avg": 98.21
+			"sections_dept": "adhe",
+			"sections_title": "dev wkshp/sem",
+			"sections_avg": 90.02
 		},
 		{
-			"sections_dept": "nurs",
-			"sections_title": "cl pro prim care",
-			"sections_avg": 98.21
+			"sections_dept": "adhe",
+			"sections_title": "adul educ",
+			"sections_avg": 90.16
 		},
 		{
-			"sections_dept": "nurs",
-			"sections_title": "fam nrs pract",
-			"sections_avg": 98.5
+			"sections_dept": "adhe",
+			"sections_title": "com adult educ",
+			"sections_avg": 90.17
 		},
 		{
-			"sections_dept": "nurs",
-			"sections_title": "fam nrs pract",
-			"sections_avg": 98.5
+			"sections_dept": "adhe",
+			"sections_title": "adul educ",
+			"sections_avg": 90.18
 		},
 		{
-			"sections_dept": "nurs",
-			"sections_title": "fam nrs pract",
-			"sections_avg": 98.58
+			"sections_dept": "adhe",
+			"sections_title": "com adult educ",
+			"sections_avg": 90.5
 		},
 		{
-			"sections_dept": "nurs",
-			"sections_title": "fam nrs pract",
-			"sections_avg": 98.58
+			"sections_dept": "adhe",
+			"sections_title": "com adult educ",
+			"sections_avg": 90.72
 		},
 		{
-			"sections_dept": "nurs",
-			"sections_title": "cl pro prim care",
-			"sections_avg": 98.71
+			"sections_dept": "adhe",
+			"sections_title": "dev wkshp/sem",
+			"sections_avg": 90.82
 		},
 		{
-			"sections_dept": "nurs",
-			"sections_title": "cl pro prim care",
-			"sections_avg": 98.71
+			"sections_dept": "adhe",
+			"sections_title": "com adult educ",
+			"sections_avg": 90.85
+		},
+		{
+			"sections_dept": "adhe",
+			"sections_title": "com adult educ",
+			"sections_avg": 91.29
+		},
+		{
+			"sections_dept": "adhe",
+			"sections_title": "com adult educ",
+			"sections_avg": 91.33
+		},
+		{
+			"sections_dept": "adhe",
+			"sections_title": "com adult educ",
+			"sections_avg": 91.33
+		},
+		{
+			"sections_dept": "adhe",
+			"sections_title": "com adult educ",
+			"sections_avg": 91.48
+		},
+		{
+			"sections_dept": "adhe",
+			"sections_title": "dev wkshp/sem",
+			"sections_avg": 92.54
+		},
+		{
+			"sections_dept": "adhe",
+			"sections_title": "dev wkshp/sem",
+			"sections_avg": 93.33
+		},
+		{
+			"sections_dept": "adhe",
+			"sections_title": "dev wkshp/sem",
+			"sections_avg": 96.11
 		}
 	]
 }

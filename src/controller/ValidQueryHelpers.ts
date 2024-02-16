@@ -249,8 +249,30 @@ export default class ValidQueryHelpers {
 			return this.handleNotLT(not.LT, dataset, id);
 		} else if (not.EQ !== undefined) {
 			return this.handleNotEQ(not.EQ, dataset, id);
+		} else if (not.IS !== undefined) {
+			return this.handleNotIS(not.IS, dataset, id);
 		}
 		return [];
+	}
+
+	public handleNotIS(is: object, dataset: any, id: string) {
+		const returnResult: InsightResult[] = [];
+		const key = Object.keys(is)[0];
+		const i = key.indexOf("_");
+		const field = key.substring(i + 1, key.length);
+		const array = Object.entries(is);
+		const value: string = array[0][1];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		for (const element of dataset) {
+			if (!this.satisfy(this.findElementValue(field, element) as string, value)) {
+				let resultElement: InsightResult = {};
+				for (const attribute of attributes) {
+					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
+				}
+				returnResult.push(resultElement);
+			}
+		}
+		return returnResult;
 	}
 
 	public handleNotEQ(eq: object, dataset: any, id: string): InsightResult[] {

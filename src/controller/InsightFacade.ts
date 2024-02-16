@@ -249,34 +249,28 @@ export default class InsightFacade implements IInsightFacade {
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		const queryModel: Query = query as Query;
+		// reject if query not object
+		if (typeof query !== "object" || query === null) {
+			return Promise.reject(new InsightError());
+		}
+
+		// validate the query
 		if (!this.validationHelpers.validateQuery(queryModel)) {
 			return Promise.reject(new InsightError());
 		}
-		// console.log("valid");
 		const targetDatasetId: string = this.validQueryHelpers.findDatasetId(queryModel);
 		const filePath = path.join(this.dataDir, `${targetDatasetId}.json`);
 		let section = await fs.readJson(filePath);
 		let data = JSON.parse(section);
-		// console.log(data[0]);
 		const dataToBeReturned = this.validQueryHelpers.filterResult(data, queryModel.WHERE, targetDatasetId);
-		// console.log(dataToBeReturned);
 		if (dataToBeReturned.length > 5000) {
-			// console.log("haha found ya");
-			// console.log(dataToBeReturned[0]);
 			return Promise.reject(new ResultTooLargeError());
 		}
 		if (queryModel.OPTIONS.ORDER === undefined) {
-			// for (const d of dataToBeReturned) {
-			// 	console.log(d);
-			// }
 			return this.validQueryHelpers.filterColumns(queryModel, dataToBeReturned, targetDatasetId);
 		} else {
-			// console.log("hello");
 			const data1 = this.applyOrder(this.validQueryHelpers.filterColumns(queryModel,
 				dataToBeReturned, targetDatasetId), queryModel.OPTIONS.ORDER, queryModel);
-			// for (const d of data1) {
-			// 	console.log(d);
-			// }
 			return data1;
 		}
 	}
