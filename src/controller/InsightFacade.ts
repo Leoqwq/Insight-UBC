@@ -47,16 +47,38 @@ export class Section {
 }
 
 export default class InsightFacade implements IInsightFacade {
-	private readonly datasets: InsightDataset[];
+	private datasets: InsightDataset[];
 	private readonly dataDir: string = "./data"; // Directory to store the processed datasets
 	private readonly validationHelpers: ValidationHelpers;
 	private readonly validQueryHelpers: ValidQueryHelpers;
 
 	constructor() {
 		this.datasets = [];
+		this.loadDatasets();
 		console.log("InsightFacadeImpl::init()");
 		this.validationHelpers = new ValidationHelpers(this.datasets);
 		this.validQueryHelpers = new ValidQueryHelpers();
+	}
+
+	private loadDatasets(): void {
+		try {
+			const filePath = path.join(this.dataDir, "datasets.json");
+			const fileContent = fs.readFileSync(filePath, "utf-8");
+			this.datasets = JSON.parse(fileContent);
+		} catch (error) {
+			// If the file doesn't exist or there's an error reading it, initialize datasets as an empty array
+			this.datasets = [];
+		}
+	}
+
+	private async saveDatasets(): Promise<void> {
+		try {
+			const filePath = path.join(this.dataDir, "datasets.json");
+			await fs.writeJson(filePath, this.datasets);
+		} catch (error) {
+			// Handle error writing datasets to disk
+			console.error("Error saving datasets:", error);
+		}
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
@@ -101,6 +123,9 @@ export default class InsightFacade implements IInsightFacade {
 			}
 		);
 
+		// Update datasets info on disk
+		await this.saveDatasets();
+
 		// Return the list of currently added datasets
 		const ids: string[] = [];
 
@@ -130,6 +155,9 @@ export default class InsightFacade implements IInsightFacade {
 			// Remove dataset from disk
 			const filePath = path.join(this.dataDir, `${id}.json`);
 			await fs.remove(filePath);
+
+			// Update datasets info on disk
+			await this.saveDatasets();
 
 			return id;
 		} catch (error: any) {
