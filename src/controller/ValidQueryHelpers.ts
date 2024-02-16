@@ -18,8 +18,8 @@ export default class ValidQueryHelpers {
 			let resultElement: InsightResult = {};
 			for (const attribute of attributes) {
 				resultElement[id + "_" + attribute] = element[attribute];
-				returnResult.push(resultElement);
 			}
+			returnResult.push(resultElement);
 		}
 		return returnResult;
 	}
@@ -32,8 +32,8 @@ export default class ValidQueryHelpers {
 				let resultElement: InsightResult = {};
 				for (const attribute of attributes) {
 					resultElement[id + "_" + attribute] = element[attribute];
-					returnResult.push(resultElement);
 				}
+				returnResult.push(resultElement);
 			}
 			return returnResult;
 		}
@@ -47,6 +47,17 @@ export default class ValidQueryHelpers {
 			return this.handleIS(where.IS, dataset);
 		} else if (where.NOT !== undefined) {
 			return this.handleNOT(where.NOT, dataset, id);
+			// return this.handleNOT(where.NOT, dataset, id);
+		} else if (where.AND !== undefined) {
+			return this.handleAND(where.AND, dataset, id);
+		} else if (where.OR !== undefined) {
+			// const length = where.OR.length;
+			// const result: InsightResult[] = [];
+			// for (const filter of where.OR) {
+			// 	let r = this.filterResult(dataset, filter, id);
+			// 	result.push(...r);
+			// }
+			return this.handleOR(where.OR, dataset, id);
 		}
 		return returnResult;
 	}
@@ -62,6 +73,34 @@ export default class ValidQueryHelpers {
 			filteredResults.push(filteredResult);
 		}
 		return filteredResults;
+	}
+
+	public handleAND(and: Where[], dataset: any, id: string): InsightResult[] {
+		let result: InsightResult[] = this.filterResult(dataset, and[0], id);
+		let stringResult: string[] = result.map((obj) => JSON.stringify(obj));
+
+		for (let i = 1; i < and.length; i++) {
+			const currResult = this.filterResult(dataset, and[i], id);
+			const stringCurrResult: string[] = currResult.map((obj) => JSON.stringify(obj));
+			stringResult = stringResult.filter((d) => stringCurrResult.includes(d));
+		}
+
+		result = stringResult.map((str) => JSON.parse(str));
+		return result;
+	}
+
+	public handleOR(or: Where[], dataset: any, id: string): InsightResult[] {
+		let result: InsightResult[] = this.filterResult(dataset, or[0], id);
+		let stringResult: string[] = result.map((obj) => JSON.stringify(obj));
+
+		for (let i: number = 1; i < or.length; i++) {
+			const newResult = this.filterResult(dataset, or[i], id);
+			let stringNewResult: string[] = newResult.map((obj) => JSON.stringify(obj));
+			stringNewResult = stringNewResult.filter((d) => !stringResult.includes(d));
+			stringResult.push(...stringNewResult);
+		}
+		result = stringResult.map((str) => JSON.parse(str));
+		return result;
 	}
 
 	public handleIS(is: object, dataset: any): InsightResult[] {
@@ -195,44 +234,82 @@ export default class ValidQueryHelpers {
 	}
 
 	public handleNOT(not: Where, dataset: any, id: string): InsightResult[] {
-		// const all = dataset;
-		// const dataToExclude: InsightResult[] = this.filterResult(dataset, not, id);
-		let results: InsightResult[] = [];
-		// const key = id;
-		// const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
-		// for (const element of all) {
-		// 	if (!this.arrayContainsObject(dataToExclude, element, key)) {
-		// 		let resultElement: InsightResult = {};
-		// 		for (const attribute of attributes) {
-		// 			resultElement[key + "_" + attribute] = element[attribute];
-		// 		}
-		// 		results.push(resultElement);
-		// 	}
-		// }
-		return results;
+		// let resultNot: InsightResult[] = this.filterResult(dataset, not, id);
+		// let stringResultNot: string[] = resultNot.map((obj) => JSON.stringify(obj));
+		// let r: string[] = [];
+		// const newResult = this.getAll(dataset, id);
+		// let stringNewResult: string[] = newResult.map((obj) => JSON.stringify(obj));
+		// stringNewResult = stringNewResult.filter((d) => !stringResultNot.includes(d));
+		// r.push(...stringNewResult);
+		// resultNot = r.map((str) => JSON.parse(str));
+		// return resultNot;
+		if (not.GT !== undefined) {
+			return this.handleNotGT(not.GT, dataset, id);
+		} else if (not.LT !== undefined) {
+			return this.handleNotLT(not.LT, dataset, id);
+		} else if (not.EQ !== undefined) {
+			return this.handleNotEQ(not.EQ, dataset, id);
+		}
+		return [];
 	}
 
-	public arrayContainsObject(array: InsightResult[], obj: InsightResult, key: string): boolean {
-		for (const element of array) {
-			if (this.objectsEqual(element, obj, key)) {
-				return true;
+	public handleNotEQ(eq: object, dataset: any, id: string): InsightResult[] {
+		const returnResult: InsightResult[] = [];
+		const key = Object.keys(eq)[0];
+		const i = key.indexOf("_");
+		const field = key.substring(i + 1, key.length);
+		const eqArray = Object.entries(eq);
+		const value: number = eqArray[0][1];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		for (const element of dataset) {
+			if (this.findElementValue(field, element) !== value) {
+				let resultElement: InsightResult = {};
+				for (const attribute of attributes) {
+					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
+				}
+				returnResult.push(resultElement);
 			}
 		}
-		return false;
+		return returnResult;
 	}
 
-	public objectsEqual(obj1: InsightResult, obj2: InsightResult, key: string): boolean {
-		const isEqual =
-            obj2["uuid"] === obj1[key + "_uuid"] &&
-            obj2["id"] === obj1[key + "_id"] &&
-            obj2["title"] === obj1[key + "_title"] &&
-            obj2["instructor"] === obj1[key + "_instructor"] &&
-            obj2["dept"] === obj1[key + "_dept"] &&
-            obj2["year"] === obj1[key + "_year"] &&
-            obj2["avg"] === obj1[key + "_avg"] &&
-            obj2["pass"] === obj1[key + "_pass"] &&
-            obj2["fail"] === obj1[key + "_fail"] &&
-            obj2["audit"] === obj1[key + "_audit"];
-		return isEqual;
+	public handleNotLT(lt: object, dataset: any, id: string) {
+		const returnResult: InsightResult[] = [];
+		const key = Object.keys(lt)[0];
+		const i = key.indexOf("_");
+		const field = key.substring(i + 1, key.length);
+		const ltArray = Object.entries(lt);
+		const value: number = ltArray[0][1];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		for (const element of dataset) {
+			if (this.findElementValue(field, element) >= value) {
+				let resultElement: InsightResult = {};
+				for (const attribute of attributes) {
+					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
+				}
+				returnResult.push(resultElement);
+			}
+		}
+		return returnResult;
+	}
+
+	public handleNotGT(gt: object, dataset: any, id: string) {
+		const returnResult: InsightResult[] = [];
+		const key = Object.keys(gt)[0];
+		const i = key.indexOf("_");
+		const field = key.substring(i + 1, key.length);
+		const gtArray = Object.entries(gt);
+		const value: number = gtArray[0][1];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		for (const element of dataset) {
+			if (this.findElementValue(field, element) <= value) {
+				let resultElement: InsightResult = {};
+				for (const attribute of attributes) {
+					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
+				}
+				returnResult.push(resultElement);
+			}
+		}
+		return returnResult;
 	}
 }
