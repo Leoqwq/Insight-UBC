@@ -1,7 +1,8 @@
 import {
-	IInsightFacade,
 	InsightDatasetKind,
-	InsightError, NotFoundError, ResultTooLargeError
+	InsightError,
+	NotFoundError,
+	ResultTooLargeError
 } from "../../src/controller/IInsightFacade";
 import InsightFacade from "../../src/controller/InsightFacade";
 
@@ -498,6 +499,25 @@ describe("InsightFacade", function () {
 					});
 				});
 			});
+		});
+	});
+
+	describe("Caching Progress", function() {
+		it("Should successfully remove dataset on new facade object", async function() {
+			await clearDisk();
+
+			const sections = await getContentFromArchives("cpsc_courses.zip");
+			const facade = new InsightFacade();
+
+			await facade.addDataset("cpsc", sections, InsightDatasetKind.Sections);
+
+			const newFacade = new InsightFacade();
+
+			const result = newFacade.removeDataset("cpsc");
+			const result2 = newFacade.listDatasets();
+
+			return (await expect(result).to.eventually.deep.equal("cpsc") &&
+				expect(result2).to.eventually.deep.equal([]));
 		});
 	});
 });

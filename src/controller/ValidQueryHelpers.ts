@@ -47,6 +47,10 @@ export default class ValidQueryHelpers {
 			return this.handleIS(where.IS, dataset);
 		} else if (where.NOT !== undefined) {
 			return this.handleNOT(where.NOT, dataset, id);
+		} else if (where.AND !== undefined) {
+			return this.handleAND(where.AND, dataset, id);
+		} else if (where.OR !== undefined) {
+			return this.handleOR(where.OR, dataset, id);
 		}
 		return returnResult;
 	}
@@ -195,14 +199,36 @@ export default class ValidQueryHelpers {
 	}
 
 	public handleNOT(not: Where, dataset: any, id: string): InsightResult[] {
-		const all = this.getAll(dataset, id);
-		const stringAll = all.map((obj) => JSON.stringify(obj));
-		const dataToExclude: InsightResult[] = this.filterResult(dataset, not, id);
-		const stringDataToExclude: string[] = dataToExclude.map((obj) => JSON.stringify(obj));
-		const stringResults: string[] = stringAll.filter((d) => !stringDataToExclude.includes(d));
-		const results = stringResults.map((str) => JSON.parse(str));
+		return [];
+	}
 
-		return results;
+	public handleAND(and: Where[], dataset: any, id: string): InsightResult[] {
+		let result: InsightResult[] = this.filterResult(dataset, and[0], id);
+		let stringResult: string[] = result.map((obj) => JSON.stringify(obj));
+
+		for (let i = 1; i < and.length; i++) {
+			const currResult = this.filterResult(dataset, and[i], id);
+			const stringCurrResult: string[] = currResult.map((obj) => JSON.stringify(obj));
+			stringResult =  stringResult.filter((d) => stringCurrResult.includes(d));
+		}
+
+		result = stringResult.map((str) => JSON.parse(str));
+
+		return result;
+	}
+
+	public handleOR(or: Where[], dataset: any, id: string): InsightResult[] {
+		let result: InsightResult[] = this.filterResult(dataset, or[0], id);
+		let stringResult: string[] = result.map((obj) => JSON.stringify(obj));
+
+		for (let i: number = 1; i < or.length; i++) {
+			const newResult = this.filterResult(dataset, or[i], id);
+			let stringNewResult: string[] = newResult.map((obj) => JSON.stringify(obj));
+			stringNewResult = stringNewResult.filter((d) => !stringResult.includes(d));
+			stringResult.push(...stringNewResult);
+		}
+		result = stringResult.map((str) => JSON.parse(str));
+		return result;
 	}
 
 	public arrayContainsObject(array: InsightResult[], obj: InsightResult, key: string): boolean {
