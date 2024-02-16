@@ -18,8 +18,8 @@ export default class ValidQueryHelpers {
 			let resultElement: InsightResult = {};
 			for (const attribute of attributes) {
 				resultElement[id + "_" + attribute] = element[attribute];
-				returnResult.push(resultElement);
 			}
+			returnResult.push(resultElement);
 		}
 		return returnResult;
 	}
@@ -195,20 +195,13 @@ export default class ValidQueryHelpers {
 	}
 
 	public handleNOT(not: Where, dataset: any, id: string): InsightResult[] {
-		// const all = dataset;
-		// const dataToExclude: InsightResult[] = this.filterResult(dataset, not, id);
-		let results: InsightResult[] = [];
-		// const key = id;
-		// const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
-		// for (const element of all) {
-		// 	if (!this.arrayContainsObject(dataToExclude, element, key)) {
-		// 		let resultElement: InsightResult = {};
-		// 		for (const attribute of attributes) {
-		// 			resultElement[key + "_" + attribute] = element[attribute];
-		// 		}
-		// 		results.push(resultElement);
-		// 	}
-		// }
+		const all = this.getAll(dataset, id);
+		const stringAll = all.map((obj) => JSON.stringify(obj));
+		const dataToExclude: InsightResult[] = this.filterResult(dataset, not, id);
+		const stringDataToExclude: string[] = dataToExclude.map((obj) => JSON.stringify(obj));
+		const stringResults: string[] = stringAll.filter((d) => !stringDataToExclude.includes(d));
+		const results = stringResults.map((str) => JSON.parse(str));
+
 		return results;
 	}
 
