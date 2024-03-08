@@ -4,13 +4,13 @@ import {
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	NotFoundError, ResultTooLargeError
+	NotFoundError,
+	ResultTooLargeError
 } from "./IInsightFacade";
 import jszip from "jszip";
 import * as fs from "fs-extra";
 import path from "path";
-import {symlinkSync} from "fs";
-import ValidationHelpers, {Option, Query, Where} from "./QueryModel";
+import ValidationHelpers, {Query} from "./QueryModel";
 import ValidQueryHelpers from "./ValidQueryHelpers";
 
 
@@ -43,6 +43,35 @@ export class Section {
 		this.pass = pass;
 		this.fail = fail;
 		this.audit = audit;
+	}
+}
+
+export class Room {
+	private readonly fullname: string;
+	private readonly shortname: string;
+	private readonly number: string;
+	private readonly name: string;
+	private readonly address: string;
+	private readonly lat: number;
+	private readonly lon: number;
+	private readonly seats: number;
+	private readonly type: string;
+	private readonly furniture: string;
+	private readonly href: string;
+
+	constructor(fullname: string, shortname: string, number: string, name: string, address: string, lat: number,
+		lon: number, seats: number, type: string, furniture: string, href: string) {
+		this.fullname = fullname;
+		this.shortname = shortname;
+		this.number = number;
+		this.name = name;
+		this.address = address;
+		this.lat = lat;
+		this.lon = lon;
+		this.seats = seats;
+		this.type = type;
+		this.furniture = furniture;
+		this.href = href;
 	}
 }
 
@@ -95,45 +124,13 @@ export default class InsightFacade implements IInsightFacade {
 		}
 
 		// Check dataset kind
-		if (kind !== "sections") {
+		if (kind === InsightDatasetKind.Sections) {
+			return await this.addSectionDataset(id, content, kind);
+		} else if (kind === InsightDatasetKind.Rooms) {
+			return await this.addRoomDataset(id, content, kind);
+		} else {
 			throw new InsightError("Invalid dataset kind");
 		}
-
-		// Process and save the dataset
-		const sections = await this.processZipFile(content);
-
-		// Check there is at least one valid section in the dataset
-		if (sections.length === 0) {
-			throw new InsightError("No valid sections found in the dataset");
-		}
-
-		// Ensure the data directory exists
-		await fs.ensureDir(this.dataDir);
-
-		// Save the processed data to disk
-		const filePath = path.join(this.dataDir, `${id}.json`);
-		await fs.writeJson(filePath, JSON.stringify(sections));
-
-		// Add the datasets object
-		this.datasets.push(
-			{
-				id,
-				kind,
-				numRows: sections.length
-			}
-		);
-
-		// Update datasets info on disk
-		await this.saveDatasets();
-
-		// Return the list of currently added datasets
-		const ids: string[] = [];
-
-		for (let dataset of this.datasets) {
-			ids.push(dataset.id);
-		}
-
-		return ids;
 	}
 
 	public async removeDataset(id: string): Promise<string> {
@@ -171,7 +168,45 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	// Helpers
-	private async processZipFile(zipContent: string): Promise<Section[]> {
+	public async addSectionDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
+		// Process and save the dataset
+		const sections = await this.processSectionZipFile(content);
+
+		// Check there is at least one valid section in the dataset
+		if (sections.length === 0) {
+			throw new InsightError("No valid sections found in the dataset");
+		}
+
+		// Ensure the data directory exists
+		await fs.ensureDir(this.dataDir);
+
+		// Save the processed data to disk
+		const filePath = path.join(this.dataDir, `${id}.json`);
+		await fs.writeJson(filePath, JSON.stringify(sections));
+
+		// Add the datasets object
+		this.datasets.push(
+			{
+				id,
+				kind,
+				numRows: sections.length
+			}
+		);
+
+		// Update datasets info on disk
+		await this.saveDatasets();
+
+		// Return the list of currently added datasets
+		const ids: string[] = [];
+
+		for (let dataset of this.datasets) {
+			ids.push(dataset.id);
+		}
+
+		return ids;
+	}
+
+	private async processSectionZipFile(zipContent: string): Promise<Section[]> {
 		let zip: jszip;
 		try {
 			zip = await jszip.loadAsync(zipContent, {base64: true});
@@ -244,6 +279,22 @@ export default class InsightFacade implements IInsightFacade {
 		});
 
 		return sections;
+	}
+
+	public async addRoomDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
+		// To be completed
+
+		return Promise.resolve([]);
+	}
+
+	private async processRoomZipFile(zipContent: string): Promise<Room[]> {
+		// To be completed
+		return Promise.resolve([]);
+	}
+
+	private async extractRooms(file: jszip.JSZipObject): Promise<Room[]> {
+		// To be completed
+		return Promise.resolve([]);
 	}
 
 
