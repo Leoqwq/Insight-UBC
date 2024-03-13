@@ -1,0 +1,24 @@
+{
+	"title": "wrongOrderAttributes",
+	"input": {
+		"WHERE": {
+			"NOT": {
+				"LT": {
+					"sections_avg": 95
+				}
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_title",
+				"sections_avg"
+			],
+			"ORDER": {
+				"not_key": "a"
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
