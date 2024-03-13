@@ -84,9 +84,17 @@ export class SortHelpers {
 				const bValue = b[order];
 				if (aValue !== bValue) {
 					if (typeof (aValue) === "string" && typeof (bValue) === "string") {
-						return aValue.localeCompare(bValue);
+						if (dir === "UP") {
+							return aValue.localeCompare(bValue);
+						} else {
+							return 0 - aValue.localeCompare(bValue);
+						}
 					} else if (typeof (aValue) === "number" && typeof (bValue) === "number"){
-						return aValue - bValue;
+						if (dir === "UP") {
+							return aValue - bValue;
+						} else {
+							return bValue - aValue;
+						}
 					}
 				}
 			}

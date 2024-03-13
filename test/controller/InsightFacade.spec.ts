@@ -21,7 +21,7 @@ export interface ITestQuery {
 }
 
 describe("InsightFacade", function () {
-	describe("addDataset", function() {
+	describe("addDatasetGeneralTests", function() {
 		let sections: string;
 		let facade: InsightFacade;
 
@@ -68,7 +68,38 @@ describe("InsightFacade", function () {
 			});
 		});
 
-		describe("Checking for valid Content argument to addDataset", function() {
+		describe("Checking for already exist dataset", function() {
+			it ("should reject when trying to add dataset with ID = 'cpsc' twice", async function() {
+				await facade.addDataset("cpsc", sections, InsightDatasetKind.Sections);
+				const result = facade.addDataset("cpsc", sections, InsightDatasetKind.Sections);
+				const result2 = facade.listDatasets();
+
+				return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
+					expect(result2).to.eventually.deep.equal([
+						{
+							id: "cpsc",
+							kind: InsightDatasetKind.Sections,
+							numRows: 4
+						}
+					]));
+			});
+		});
+	});
+
+	describe("addSectionDataset", function() {
+		let sections: string;
+		let facade: InsightFacade;
+
+		before(async function() {
+			sections = await getContentFromArchives("cpsc_courses.zip");
+		});
+
+		beforeEach(async function() {
+			await clearDisk();
+			facade = new InsightFacade();
+		});
+
+		describe("Checking for valid Content argument to addSectionDataset", function() {
 			it ("should reject with an invalid Dataset that is not structured as a base64 string of a zip file",
 				async function() {
 					const result = facade.addDataset("cpsc",
@@ -136,45 +167,93 @@ describe("InsightFacade", function () {
 			// });
 		});
 
-		describe("Checking for valid Kind argument to addDataset", function() {
-			it ("should reject with Kind argument other than 'sections'", async function() {
-				const result = facade.addDataset("cpsc", sections, InsightDatasetKind.Rooms);
+		describe("Checking for successful addSectionDataset", function() {
+			it ("should successfully add a section dataset (first)", function() {
+				const result = facade.addDataset("cpsc", sections, InsightDatasetKind.Sections);
+
+				return expect(result).to.eventually.have.members(["cpsc"]);
+
+			});
+
+			it ("should successfully add a section dataset (second)", function() {
+				const result = facade.addDataset("cpsc", sections, InsightDatasetKind.Sections);
+
+				return expect(result).to.eventually.have.members(["cpsc"]);
+			});
+		});
+	});
+
+	describe("addRoomDataset", function() {
+		let rooms: string;
+		let facade: InsightFacade;
+
+		before(async function() {
+			rooms = await getContentFromArchives("campus.zip");
+		});
+
+		beforeEach(async function() {
+			await clearDisk();
+			facade = new InsightFacade();
+		});
+
+		describe("Checking for valid Content argument to addRoomDataset", function() {
+			it ("should reject with an invalid Dataset that is not structured as a base64 string of a zip file",
+				async function() {
+					const result = facade.addDataset("cpsc",
+						"not_a_base_64_string_of_a zip_file", InsightDatasetKind.Rooms);
+					const result2 = facade.listDatasets();
+
+					return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
+						expect(result2).to.eventually.deep.equal([]));
+				});
+
+			it ("should reject with an invalid Dataset that is not in the form of a serialized zip file",
+				async function() {
+					const result = facade.addDataset("invalid",
+						await getContentFromArchives("invalid_non_zip.json"), InsightDatasetKind.Rooms);
+					const result2 = facade.listDatasets();
+
+					return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
+						expect(result2).to.eventually.deep.equal([]));
+				});
+
+			it ("should reject with an invalid Dataset that is empty which contains no valid rooms",
+				async function() {
+					const result = facade.addDataset("invalid",
+						await getContentFromArchives("invalid_empty_2.zip"), InsightDatasetKind.Rooms);
+					const result2 = facade.listDatasets();
+
+					return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
+						expect(result2).to.eventually.deep.equal([]));
+				});
+
+			it ("should reject with an invalid Dataset contains a building without rooms",
+				async function() {
+					const result = facade.addDataset("invalid",
+						await getContentFromArchives("invalid_no_room.zip"), InsightDatasetKind.Rooms);
+					const result2 = facade.listDatasets();
+
+					return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
+						expect(result2).to.eventually.deep.equal([]));
+				});
+
+			it ("should reject with an invalid Dataset contains an invalid room missing field 'seats'",
+				async function() {
+					const result = facade.addDataset("invalid",
+						await getContentFromArchives("invalid_missing_field_2.zip"), InsightDatasetKind.Rooms);
+					const result2 = facade.listDatasets();
+
+					return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
+						expect(result2).to.eventually.deep.equal([]));
+				});
+
+			it ("should reject when the requested room's geolocation request failed to return", async function() {
+				const result = facade.addDataset("invalid",
+					await getContentFromArchives("invalid_unexist_room_location.zip"), InsightDatasetKind.Rooms);
 				const result2 = facade.listDatasets();
 
 				return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
 					expect(result2).to.eventually.deep.equal([]));
-			});
-		});
-
-		describe("Checking for already exist dataset", function() {
-			it ("should reject when trying to add dataset with ID = 'cpsc' twice", async function() {
-				await facade.addDataset("cpsc", sections, InsightDatasetKind.Sections);
-				const result = facade.addDataset("cpsc", sections, InsightDatasetKind.Sections);
-				const result2 = facade.listDatasets();
-
-				return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
-					expect(result2).to.eventually.deep.equal([
-						{
-							id: "cpsc",
-							kind: InsightDatasetKind.Sections,
-							numRows: 4
-						}
-					]));
-			});
-		});
-
-		describe("Checking for successful addDataset", function() {
-			it ("should successfully add a dataset (first)", function() {
-				const result = facade.addDataset("cpsc", sections, InsightDatasetKind.Sections);
-
-				return expect(result).to.eventually.have.members(["cpsc"]);
-
-			});
-
-			it ("should successfully add a dataset (second)", function() {
-				const result = facade.addDataset("cpsc", sections, InsightDatasetKind.Sections);
-
-				return expect(result).to.eventually.have.members(["cpsc"]);
 			});
 		});
 	});
