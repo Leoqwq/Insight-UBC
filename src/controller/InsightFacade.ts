@@ -10,11 +10,12 @@ import {
 import jszip from "jszip";
 import * as fs from "fs-extra";
 import path from "path";
-import ValidationHelpers, {Query} from "./QueryModel";
+import ValidationHelpers from "./QueryModel";
 import ValidQueryHelpers from "./ValidQueryHelpers";
+import {CompoundOrder, Query} from "./QueryStructure";
+import {SortHelpers} from "./SortHelpers";
 import AddRoomDatasetHelpers from "./AddRoomDatasetHelpers";
 import AddSectionDatasetHelpers from "./AddSectionDatasetHelpers";
-
 
 /**
  * This is the main programmatic entry point for the project.
@@ -224,6 +225,136 @@ export default class InsightFacade implements IInsightFacade {
 		return Promise.resolve(this.datasets);
 	}
 
+	// Helpers
+	public async addSectionDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
+		// Process and save the dataset
+		const sections = await this.processSectionZipFile(content);
+
+		// Check there is at least one valid section in the dataset
+		if (sections.length === 0) {
+			throw new InsightError("No valid sections found in the dataset");
+		}
+
+		// Ensure the data directory exists
+		await fs.ensureDir(this.dataDir);
+
+		// Save the processed data to disk
+		const filePath = path.join(this.dataDir, `${id}.json`);
+		await fs.writeJson(filePath, JSON.stringify(sections));
+
+		// Add the datasets object
+		this.datasets.push(
+			{
+				id,
+				kind,
+				numRows: sections.length
+			}
+		);
+
+		// Update datasets info on disk
+		await this.saveDatasets();
+
+		// Return the list of currently added datasets
+		const ids: string[] = [];
+
+		for (let dataset of this.datasets) {
+			ids.push(dataset.id);
+		}
+
+		return ids;
+	}
+
+	private async processSectionZipFile(zipContent: string): Promise<Section[]> {
+		let zip: jszip;
+		try {
+			zip = await jszip.loadAsync(zipContent, {base64: true});
+		} catch (e) {
+			throw new InsightError("Not structured as a base64 string of a zip file");
+		}
+		const sectionPromises: Array<Promise<Section[]>> = [];
+
+		for (const [relativePath, file] of Object.entries(zip.files)) {
+			if (file.dir) {
+				// Skip courses directory
+			} else {
+				const sectionPromise = this.extractSections(file);
+				sectionPromises.push(sectionPromise);
+			}
+		}
+
+		// Use Promise.all to wait for all async calls to complete
+		const sectionsArrays = await Promise.all(sectionPromises);
+
+		// Flatten the array of arrays into a single array of sections
+		const sections: Section[] = sectionsArrays.reduce((acc, val) => acc.concat(val), []);
+
+		return sections;
+	}
+
+	private async extractSections(file: jszip.JSZipObject): Promise<Section[]> {
+		// Parse the file content
+		const fileContent = await file.async("string");
+
+		// Parse the string into a JSON object
+		let jsonObject;
+		try {
+			jsonObject = JSON.parse(fileContent);
+		} catch (e) {
+			throw new InsightError("Not JSON formatted file");
+		}
+
+		// Extract the "result" array from the JSON object
+		const resultArray = jsonObject.result;
+
+		const sections: Section[] = [];
+
+		resultArray.forEach((obj: any, index: any) => {
+			// Check if any field is missing
+			if (obj.id === undefined || obj.Course === undefined || obj.Title === undefined
+				|| obj.Professor === undefined || obj.Subject === undefined || obj.Year === undefined
+				|| obj.Avg === undefined || obj.Pass === undefined || obj.Fail === undefined
+				|| obj.Audit === undefined) {
+				return;
+			}
+
+			const uuid = obj.id;
+			const id = obj.Course;
+			const title = obj.Title;
+			const instructor = obj.Professor;
+			const dept = obj.Subject;
+			const year = obj.Year;
+			const avg = obj.Avg;
+			const pass = obj.Pass;
+			const fail = obj.Fail;
+			const audit = obj.Audit;
+
+			// Check for any casting error
+			if (isNaN(year) || isNaN(avg) || isNaN(pass) || isNaN(fail) || isNaN(audit)) {
+				return;
+			}
+
+			sections.push(new Section(uuid, id, title, instructor, dept, year, avg, pass, fail, audit));
+		});
+
+		return sections;
+	}
+
+	public async addRoomDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
+		// To be completed
+
+		return Promise.resolve([]);
+	}
+
+	private async processRoomZipFile(zipContent: string): Promise<Room[]> {
+		// To be completed
+		return Promise.resolve([]);
+	}
+
+	private async extractRooms(file: jszip.JSZipObject): Promise<Room[]> {
+		// To be completed
+		return Promise.resolve([]);
+	}
+
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		const queryModel: Query = query as Query;
@@ -247,46 +378,11 @@ export default class InsightFacade implements IInsightFacade {
 		if (queryModel.OPTIONS.ORDER === undefined) {
 			return this.validQueryHelpers.filterColumns(queryModel, dataToBeReturned, targetDatasetId);
 		} else {
-			const data1 = this.applyOrder(this.validQueryHelpers.filterColumns(queryModel,
-				dataToBeReturned, targetDatasetId), queryModel.OPTIONS.ORDER, queryModel);
+			const sortHelpers: SortHelpers = new SortHelpers();
+			const data1 = sortHelpers.applyOrder(this.validQueryHelpers.filterColumns(queryModel,
+				dataToBeReturned, targetDatasetId), queryModel.OPTIONS.ORDER, queryModel, this.validQueryHelpers);
+			console.log(data1);
 			return data1;
 		}
-	}
-
-	public applyOrder(data: InsightResult[], order: string, queryModel: Query): InsightResult[] {
-		switch (order) {
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "audit":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "avg":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "year":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "pass":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "fail":
-				return this.sortNumeric(data, order);
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "uuid":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "dept":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "id":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "title":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "instructor":
-				return this.sortAlphabetic(data, order);
-			default:
-				return data;
-		}
-	}
-
-	private sortNumeric(data: InsightResult[], order: string): InsightResult[] {
-		return data.sort((a, b) => {
-			return (a[order] as any) - (b[order] as any);
-		});
-	}
-
-	private sortAlphabetic(data: InsightResult[], order: string): InsightResult[] {
-		return data.sort((a, b) => {
-			if (a[order] < b[order]) {
-				return -1;
-			} else if (a[order] > b[order]) {
-				return 1;
-			} else {
-				return 0;
-			}
-		});
 	}
 }

@@ -1,28 +1,9 @@
 import {InsightDataset} from "./IInsightFacade";
-
-export interface Query {
-	WHERE: Where;
-	OPTIONS: Option;
-}
-
-export interface Where {
-	OR?: Where[];
-	AND?: Where[];
-	NOT?: Where;
-	GT?: object;
-	LT?: object;
-	EQ?: object;
-	IS?: object;
-}
-
-export interface Negation {
-	condition: Where;
-}
-
-export interface Option {
-	COLUMNS: string[];
-	ORDER?: string;
-}
+import exp from "constants";
+import {CompoundOrder, Option, Query, Transformation, Where} from "./QueryStructure";
+import {query} from "express";
+import ValidQueryHelpers from "./ValidQueryHelpers";
+import {ValidateTransformationHelper} from "./ValidateTransformationHelper";
 
 export default class ValidationHelpers {
 
@@ -232,45 +213,62 @@ export default class ValidationHelpers {
 		return false;
 	}
 
-	public validateQueryOption(optionBlock: Option): boolean {
+	public validateQueryOption(optionBlock: Option, q: Query): boolean {
 		if (optionBlock.COLUMNS === undefined) {
 			return false;
 		} else {
-			if (optionBlock.ORDER !== undefined) {
-				return this.validateColumns(optionBlock.COLUMNS) &&
-					this.validateOrder(optionBlock.ORDER, optionBlock.COLUMNS);
+			if (optionBlock.ORDER !== undefined && typeof (optionBlock.ORDER) === "string") {
+				return this.validateColumns(optionBlock.COLUMNS, q) &&
+					this.validateOrderSimple(optionBlock.ORDER, optionBlock.COLUMNS);
+			} else if (optionBlock.ORDER !== undefined && typeof (optionBlock.ORDER) === "object") {
+				return this.validateOrderComplex(optionBlock.ORDER, optionBlock.COLUMNS) &&
+					this.validateColumns(optionBlock.COLUMNS, q);
 			}
-			return this.validateColumns((optionBlock.COLUMNS));
+			return this.validateColumns(optionBlock.COLUMNS, q);
 		}
 	}
 
-	public validateColumns(COLUMNS: string[]): boolean {
+	public validateColumns(COLUMNS: string[], q: Query): boolean {
 		if (COLUMNS.length === 0) {
 			return false;
 		}
+		const possibleKey: string[] = ["avg", "pass", "fail", "audit", "year",
+			"dept", "id", "instructor", "title", "uuid"];
+		if (q.TRANSFORMATIONS !== undefined) {
+			for (const a of q.TRANSFORMATIONS.APPLY) {
+				const keys = Object.keys(a);
+				for (const key of keys) {
+					possibleKey.push(key);
+				}
+			}
+		}
+		const ids: string[] = ["default"];
 		for (const column of COLUMNS) {
 			const underscoreIndex = column.indexOf("_");
-			if (underscoreIndex === -1) {
-				return false;
+			let idString;
+			let mField;
+			if (underscoreIndex !== -1) {
+				idString = column.substring(0, underscoreIndex);
+				mField = column.substring(underscoreIndex + 1);
+			} else {
+				idString = "default";
+				mField = column;
 			}
-			const idString = column.substring(0, underscoreIndex);
-			const mField = column.substring(underscoreIndex + 1);
-			const ids: string[] = [];
+
 			for (let dataset of this.datasets) {
 				ids.push(dataset.id);
 			}
 			if (this.initialMorSKey === "_") {
 				this.initialMorSKey = idString;
 			} else {
-				if (this.initialMorSKey !== idString) {
+				if (this.initialMorSKey !== idString && idString !== "default") {
 					return false;
 				}
 			}
 			if (!ids.includes(idString)) {
 				return false;
 			}
-			const possibleKey: string[] = ["avg", "pass", "fail", "audit", "year",
-				"dept", "id", "instructor", "title", "uuid"];
+
 			if(!possibleKey.includes(mField)) {
 				return false;
 			}
@@ -278,9 +276,18 @@ export default class ValidationHelpers {
 		return true;
 	}
 
-	public validateOrder(Order: string, COLUMNS: string[]): boolean {
-		if (!COLUMNS.includes(Order)) {
+	public validateOrderSimple(Order: string, COLUMNS: string[]): boolean {
+		return COLUMNS.includes(Order);
+	}
+
+	public validateOrderComplex(order: CompoundOrder, COLUMNS: string[]) {
+		if (!(order.dir === "UP" || order.dir === "DOWN") || order.keys == null) {
 			return false;
+		}
+		for (let key of order.keys) {
+			if (!COLUMNS.includes(key)) {
+				return false;
+			}
 		}
 		return true;
 	}
@@ -291,8 +298,17 @@ export default class ValidationHelpers {
 		} else if(queryModel.OPTIONS == null) {
 			return false;
 		} else {
-			const isValid: boolean = this.validateQueryWhere(queryModel.WHERE) &&
-				this.validateQueryOption(queryModel.OPTIONS);
+			if (queryModel.TRANSFORMATIONS == null) {
+				const isValid: boolean = this.validateQueryWhere(queryModel.WHERE) &&
+					this.validateQueryOption(queryModel.OPTIONS, queryModel);
+				this.initialMorSKey = "_";
+				return isValid;
+			}
+			const validateTransformationHelper = new ValidateTransformationHelper();
+			const isValid: boolean =
+				this.validateQueryWhere(queryModel.WHERE) &&
+				validateTransformationHelper.validateTransformation(queryModel.TRANSFORMATIONS, queryModel) &&
+				this.validateQueryOption(queryModel.OPTIONS, queryModel);
 			this.initialMorSKey = "_";
 			return isValid;
 		}

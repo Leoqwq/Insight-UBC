@@ -1,28 +1,34 @@
-import {Query, Where} from "./QueryModel";
+import {Query, Where} from "./QueryStructure";
 import {InsightDataset, InsightError, InsightResult, ResultTooLargeError} from "./IInsightFacade";
 import {Section} from "./InsightFacade";
 import e from "express";
+import {GeneralHelpers} from "./GeneralHelpers";
 
 export default class ValidQueryHelpers {
-
 	public findDatasetId(validQuery: Query): string {
-		const keyPair = validQuery.OPTIONS.COLUMNS[0];
-		const underscoreIndex = keyPair.indexOf("_");
-		return keyPair.substring(0,underscoreIndex);
+		if (validQuery.TRANSFORMATIONS == null) {
+			const keyPair = validQuery.OPTIONS.COLUMNS[0];
+			const underscoreIndex = keyPair.indexOf("_");
+			return keyPair.substring(0,underscoreIndex);
+		} else {
+			const keyPair = validQuery.TRANSFORMATIONS.GROUP[0];
+			const underscoreIndex = keyPair.indexOf("_");
+			return keyPair.substring(0,underscoreIndex);
+		}
 	}
 
-	public getAll(dataset: any, id: string) {
-		const returnResult: InsightResult[] = [];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
-		for (const element of dataset) {
-			let resultElement: InsightResult = {};
-			for (const attribute of attributes) {
-				resultElement[id + "_" + attribute] = element[attribute];
-			}
-			returnResult.push(resultElement);
-		}
-		return returnResult;
-	}
+	// public getAll(dataset: any, id: string) {
+	// 	const returnResult: InsightResult[] = [];
+	// 	const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+	// 	for (const element of dataset) {
+	// 		let resultElement: InsightResult = {};
+	// 		for (const attribute of attributes) {
+	// 			resultElement[id + "_" + attribute] = element[attribute];
+	// 		}
+	// 		returnResult.push(resultElement);
+	// 	}
+	// 	return returnResult;
+	// }
 
 	public filterResult(dataset: any, where: Where, id: string): InsightResult[] {
 		const returnResult: InsightResult[] = [];
@@ -51,12 +57,6 @@ export default class ValidQueryHelpers {
 		} else if (where.AND !== undefined) {
 			return this.handleAND(where.AND, dataset, id);
 		} else if (where.OR !== undefined) {
-			// const length = where.OR.length;
-			// const result: InsightResult[] = [];
-			// for (const filter of where.OR) {
-			// 	let r = this.filterResult(dataset, filter, id);
-			// 	result.push(...r);
-			// }
 			return this.handleOR(where.OR, dataset, id);
 		}
 		return returnResult;
@@ -68,7 +68,13 @@ export default class ValidQueryHelpers {
 		for (const result of results) {
 			const filteredResult: InsightResult = {}; // Create a new object for each iteration
 			for (const attribute of attributes) {
-				filteredResult[key + "_" + attribute] = result[key + "_" + attribute];
+				const defaultAttributes = ["uuid", "id", "title", "instructor", "dept",
+					"year", "avg", "pass", "fail", "audit"];
+				if (defaultAttributes.includes(attribute)) {
+					filteredResult[key + "_" + attribute] = result[key + "_" + attribute];
+				} else {
+					filteredResult[attribute] = result[attribute];
+				}
 			}
 			filteredResults.push(filteredResult);
 		}
@@ -112,7 +118,8 @@ export default class ValidQueryHelpers {
 		const value: string = array[0][1];
 		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
 		for (const element of dataset) {
-			if (this.satisfy(this.findElementValue(field, element) as string, value)) {
+			const generalHelpers = new GeneralHelpers();
+			if (generalHelpers.satisfy(this.findElementValue(field, element) as string, value)) {
 				let resultElement: InsightResult = {};
 				for (const attribute of attributes) {
 					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
@@ -121,20 +128,6 @@ export default class ValidQueryHelpers {
 			}
 		}
 		return returnResult;
-	}
-
-	public satisfy(field: string, val: string): boolean {
-		if (val[0] === "*" && val[val.length - 1] === "*") {
-			const part = val.substring(1, val.length - 1);
-			return field.includes(part);
-		} else if (val[0] === "*") {
-			const part = val.substring(1, val.length);
-			return field.endsWith(part);
-		} else if (val[val.length - 1] === "*") {
-			const part = val.substring(0, val.length - 1);
-			return field.startsWith(part);
-		}
-		return field === val;
 	}
 
 	public handleGT(gt: object, dataset: any): InsightResult[] {
@@ -225,10 +218,15 @@ export default class ValidQueryHelpers {
 	}
 
 	public getAttributes(columns: string[]): string[] {
-		const i = columns[0].indexOf("_");
+		// const i = columns[0].indexOf("_");
 		const attributes: string[] = [];
 		for (const column of columns) {
-			attributes.push(column.substring(i + 1, column.length));
+			const i = column.indexOf("_");
+			if (i === -1) {
+				attributes.push(column);
+			} else {
+				attributes.push(column.substring(i + 1, column.length));
+			}
 		}
 		return attributes;
 	}
@@ -264,7 +262,8 @@ export default class ValidQueryHelpers {
 		const value: string = array[0][1];
 		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
 		for (const element of dataset) {
-			if (!this.satisfy(this.findElementValue(field, element) as string, value)) {
+			const generalHelpers = new GeneralHelpers();
+			if (!generalHelpers.satisfy(this.findElementValue(field, element) as string, value)) {
 				let resultElement: InsightResult = {};
 				for (const attribute of attributes) {
 					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
