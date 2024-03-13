@@ -2,13 +2,19 @@ import {Query, Where} from "./QueryStructure";
 import {InsightDataset, InsightError, InsightResult, ResultTooLargeError} from "./IInsightFacade";
 import {Section} from "./InsightFacade";
 import e from "express";
+import {GeneralHelpers} from "./GeneralHelpers";
 
 export default class ValidQueryHelpers {
-
 	public findDatasetId(validQuery: Query): string {
-		const keyPair = validQuery.OPTIONS.COLUMNS[0];
-		const underscoreIndex = keyPair.indexOf("_");
-		return keyPair.substring(0,underscoreIndex);
+		if (validQuery.TRANSFORMATIONS == null) {
+			const keyPair = validQuery.OPTIONS.COLUMNS[0];
+			const underscoreIndex = keyPair.indexOf("_");
+			return keyPair.substring(0,underscoreIndex);
+		} else {
+			const keyPair = validQuery.TRANSFORMATIONS.GROUP[0];
+			const underscoreIndex = keyPair.indexOf("_");
+			return keyPair.substring(0,underscoreIndex);
+		}
 	}
 
 	// public getAll(dataset: any, id: string) {
@@ -112,7 +118,8 @@ export default class ValidQueryHelpers {
 		const value: string = array[0][1];
 		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
 		for (const element of dataset) {
-			if (this.satisfy(this.findElementValue(field, element) as string, value)) {
+			const generalHelpers = new GeneralHelpers();
+			if (generalHelpers.satisfy(this.findElementValue(field, element) as string, value)) {
 				let resultElement: InsightResult = {};
 				for (const attribute of attributes) {
 					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];
@@ -121,20 +128,6 @@ export default class ValidQueryHelpers {
 			}
 		}
 		return returnResult;
-	}
-
-	public satisfy(field: string, val: string): boolean {
-		if (val[0] === "*" && val[val.length - 1] === "*") {
-			const part = val.substring(1, val.length - 1);
-			return field.includes(part);
-		} else if (val[0] === "*") {
-			const part = val.substring(1, val.length);
-			return field.endsWith(part);
-		} else if (val[val.length - 1] === "*") {
-			const part = val.substring(0, val.length - 1);
-			return field.startsWith(part);
-		}
-		return field === val;
 	}
 
 	public handleGT(gt: object, dataset: any): InsightResult[] {
@@ -269,7 +262,8 @@ export default class ValidQueryHelpers {
 		const value: string = array[0][1];
 		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
 		for (const element of dataset) {
-			if (!this.satisfy(this.findElementValue(field, element) as string, value)) {
+			const generalHelpers = new GeneralHelpers();
+			if (!generalHelpers.satisfy(this.findElementValue(field, element) as string, value)) {
 				let resultElement: InsightResult = {};
 				for (const attribute of attributes) {
 					resultElement[key.substring(0, i) + "_" + attribute] = element[attribute];

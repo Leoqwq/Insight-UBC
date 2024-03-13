@@ -13,6 +13,8 @@ import path from "path";
 import ValidationHelpers from "./QueryModel";
 import ValidQueryHelpers from "./ValidQueryHelpers";
 import {CompoundOrder, Query} from "./QueryStructure";
+import {SortHelpers} from "./SortHelpers";
+
 
 /**
  * This is the main programmatic entry point for the project.
@@ -320,46 +322,11 @@ export default class InsightFacade implements IInsightFacade {
 		if (queryModel.OPTIONS.ORDER === undefined) {
 			return this.validQueryHelpers.filterColumns(queryModel, dataToBeReturned, targetDatasetId);
 		} else {
-			const data1 = this.applyOrder(this.validQueryHelpers.filterColumns(queryModel,
-				dataToBeReturned, targetDatasetId), queryModel.OPTIONS.ORDER, queryModel);
+			const sortHelpers: SortHelpers = new SortHelpers();
+			const data1 = sortHelpers.applyOrder(this.validQueryHelpers.filterColumns(queryModel,
+				dataToBeReturned, targetDatasetId), queryModel.OPTIONS.ORDER, queryModel, this.validQueryHelpers);
+			console.log(data1);
 			return data1;
 		}
-	}
-
-	public applyOrder(data: InsightResult[], order: string | CompoundOrder, queryModel: Query): InsightResult[] {
-		switch (order) {
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "audit":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "avg":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "year":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "pass":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "fail":
-				return this.sortNumeric(data, order);
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "uuid":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "dept":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "id":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "title":
-			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "instructor":
-				return this.sortAlphabetic(data, order);
-			default:
-				return data;
-		}
-	}
-
-	private sortNumeric(data: InsightResult[], order: string): InsightResult[] {
-		return data.sort((a, b) => {
-			return (a[order] as any) - (b[order] as any);
-		});
-	}
-
-	private sortAlphabetic(data: InsightResult[], order: string): InsightResult[] {
-		return data.sort((a, b) => {
-			if (a[order] < b[order]) {
-				return -1;
-			} else if (a[order] > b[order]) {
-				return 1;
-			} else {
-				return 0;
-			}
-		});
 	}
 }

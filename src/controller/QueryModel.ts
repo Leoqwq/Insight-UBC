@@ -3,7 +3,7 @@ import exp from "constants";
 import {CompoundOrder, Option, Query, Transformation, Where} from "./QueryStructure";
 import {query} from "express";
 import ValidQueryHelpers from "./ValidQueryHelpers";
-import {ValidateTransformationHelper} from "./ValidationHelpers";
+import {ValidateTransformationHelper} from "./ValidateTransformationHelper";
 
 export default class ValidationHelpers {
 
