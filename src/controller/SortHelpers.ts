@@ -5,7 +5,6 @@ import ValidQueryHelpers from "./ValidQueryHelpers";
 export class SortHelpers {
 	public applyOrder(data: InsightResult[],
 		order: string | CompoundOrder, queryModel: Query, vh: ValidQueryHelpers): InsightResult[] {
-
 		if (typeof order === "string") {
 			return this.sortSimpleOrder(order, vh, queryModel, data);
 		} else {
@@ -37,7 +36,7 @@ export class SortHelpers {
 		// 		return data;
 		// }
 	}
-  
+
 	private sortNumeric(data: InsightResult[], order: string): InsightResult[] {
 		return data.sort((a, b) => {
 			return (a[order] as any) - (b[order] as any);
@@ -86,9 +85,21 @@ export class SortHelpers {
 				if (aValue !== bValue) {
 					if (typeof (aValue) === "string" && typeof (bValue) === "string") {
 						if (dir === "UP") {
-							return aValue.localeCompare(bValue);
+							if (a[order] < b[order]) {
+								return -1;
+							} else if (a[order] > b[order]) {
+								return 1;
+							} else {
+								return 0;
+							}
 						} else {
-							return 0 - aValue.localeCompare(bValue);
+							if (a[order] < b[order]) {
+								return 1;
+							} else if (a[order] > b[order]) {
+								return -1;
+							} else {
+								return 0;
+							}
 						}
 					} else if (typeof (aValue) === "number" && typeof (bValue) === "number"){
 						if (dir === "UP") {

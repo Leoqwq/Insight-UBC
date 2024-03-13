@@ -14,7 +14,8 @@ import ValidationHelpers from "./QueryModel";
 import ValidQueryHelpers from "./ValidQueryHelpers";
 import {CompoundOrder, Query} from "./QueryStructure";
 import {SortHelpers} from "./SortHelpers";
-
+import AddRoomDatasetHelpers from "./AddRoomDatasetHelpers";
+import AddSectionDatasetHelpers from "./AddSectionDatasetHelpers";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -77,11 +78,29 @@ export class Room {
 	}
 }
 
+export class Building{
+	public readonly fullname: string;
+	public readonly shortname: string;
+	public readonly address: string;
+	public lat: number = -1;
+	public lon: number = -1;
+	public readonly pathToRooms: string;
+
+	constructor(fullname: string, shortname: string, address: string, pathToRooms: string) {
+		this.fullname = fullname;
+		this.shortname = shortname;
+		this.address = address;
+		this.pathToRooms = pathToRooms;
+	}
+}
+
 export default class InsightFacade implements IInsightFacade {
 	private datasets: InsightDataset[];
 	private readonly dataDir: string = "./data"; // Directory to store the processed datasets
 	private readonly validationHelpers: ValidationHelpers;
 	private readonly validQueryHelpers: ValidQueryHelpers;
+	private readonly addRoomDatasetHelpers: AddRoomDatasetHelpers;
+	private readonly addSectionDatasetHelpers: AddSectionDatasetHelpers;
 
 	constructor() {
 		this.datasets = [];
@@ -89,6 +108,8 @@ export default class InsightFacade implements IInsightFacade {
 		console.log("InsightFacadeImpl::init()");
 		this.validationHelpers = new ValidationHelpers(this.datasets);
 		this.validQueryHelpers = new ValidQueryHelpers();
+		this.addRoomDatasetHelpers = new AddRoomDatasetHelpers();
+		this.addSectionDatasetHelpers = new AddSectionDatasetHelpers();
 	}
 
 	private loadDatasets(): void {
@@ -125,14 +146,49 @@ export default class InsightFacade implements IInsightFacade {
 			}
 		}
 
+		let tuples: any;
+
 		// Check dataset kind
 		if (kind === InsightDatasetKind.Sections) {
-			return await this.addSectionDataset(id, content, kind);
+			tuples = await this.addSectionDatasetHelpers.processSectionZipFile(content);
 		} else if (kind === InsightDatasetKind.Rooms) {
-			return await this.addRoomDataset(id, content, kind);
+			tuples =  await this.addRoomDatasetHelpers.processRoomZipFile(content);
 		} else {
 			throw new InsightError("Invalid dataset kind");
 		}
+
+		// Check there is at least one valid section in the dataset
+		if (tuples.length === 0) {
+			throw new InsightError("No valid tuples found in the dataset");
+		}
+
+		// Ensure the data directory exists
+		await fs.ensureDir(this.dataDir);
+
+		// Save the processed data to disk
+		const filePath = path.join(this.dataDir, `${id}.json`);
+		await fs.writeJson(filePath, JSON.stringify(tuples));
+
+		// Add the datasets object
+		this.datasets.push(
+			{
+				id,
+				kind,
+				numRows: tuples.length
+			}
+		);
+
+		// Update datasets info on disk
+		await this.saveDatasets();
+
+		// Return the list of currently added datasets
+		const ids: string[] = [];
+
+		for (let dataset of this.datasets) {
+			ids.push(dataset.id);
+		}
+
+		return ids;
 	}
 
 	public async removeDataset(id: string): Promise<string> {
@@ -256,8 +312,8 @@ export default class InsightFacade implements IInsightFacade {
 			// Check if any field is missing
 			if (obj.id === undefined || obj.Course === undefined || obj.Title === undefined
 				|| obj.Professor === undefined || obj.Subject === undefined || obj.Year === undefined
-			|| obj.Avg === undefined || obj.Pass === undefined || obj.Fail === undefined
-			|| obj.Audit === undefined) {
+				|| obj.Avg === undefined || obj.Pass === undefined || obj.Fail === undefined
+				|| obj.Audit === undefined) {
 				return;
 			}
 

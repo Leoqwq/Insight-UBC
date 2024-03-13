@@ -230,7 +230,7 @@ describe("InsightFacade", function () {
 			it ("should reject with an invalid Dataset contains a building without rooms",
 				async function() {
 					const result = facade.addDataset("invalid",
-						await getContentFromArchives("invalid_no_room.zip"), InsightDatasetKind.Rooms);
+						await getContentFromArchives("invalid_no_rooms.zip"), InsightDatasetKind.Rooms);
 					const result2 = facade.listDatasets();
 
 					return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
@@ -254,6 +254,21 @@ describe("InsightFacade", function () {
 
 				return (await expect(result).to.eventually.be.rejectedWith(InsightError) &&
 					expect(result2).to.eventually.deep.equal([]));
+			});
+		});
+
+		describe("Checking for successful addRoomDataset", function() {
+			it ("should successfully add a room dataset (first)", function() {
+				const result = facade.addDataset("campus", rooms, InsightDatasetKind.Rooms);
+
+				return expect(result).to.eventually.have.members(["campus"]);
+
+			});
+
+			it ("should successfully add a section dataset (second)", function() {
+				const result = facade.addDataset("campus", rooms, InsightDatasetKind.Rooms);
+
+				return expect(result).to.eventually.have.members(["campus"]);
 			});
 		});
 	});
