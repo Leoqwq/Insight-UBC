@@ -5,6 +5,7 @@ import ValidQueryHelpers from "./ValidQueryHelpers";
 export class SortHelpers {
 	public applyOrder(data: InsightResult[],
 		order: string | CompoundOrder, queryModel: Query, vh: ValidQueryHelpers): InsightResult[] {
+
 		if (typeof order === "string") {
 			return this.sortSimpleOrder(order, vh, queryModel, data);
 		} else {
@@ -36,7 +37,7 @@ export class SortHelpers {
 		// 		return data;
 		// }
 	}
-
+  
 	private sortNumeric(data: InsightResult[], order: string): InsightResult[] {
 		return data.sort((a, b) => {
 			return (a[order] as any) - (b[order] as any);

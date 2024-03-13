@@ -15,6 +15,7 @@ import ValidQueryHelpers from "./ValidQueryHelpers";
 import {CompoundOrder, Query} from "./QueryStructure";
 import {SortHelpers} from "./SortHelpers";
 
+
 /**
  * This is the main programmatic entry point for the project.
  * Method documentation is in IInsightFacade
