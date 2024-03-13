@@ -10,9 +10,9 @@ import {
 import jszip from "jszip";
 import * as fs from "fs-extra";
 import path from "path";
-import ValidationHelpers, {Query} from "./QueryModel";
+import ValidationHelpers from "./QueryModel";
 import ValidQueryHelpers from "./ValidQueryHelpers";
-
+import {CompoundOrder, Query} from "./QueryStructure";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -326,7 +326,7 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	public applyOrder(data: InsightResult[], order: string, queryModel: Query): InsightResult[] {
+	public applyOrder(data: InsightResult[], order: string | CompoundOrder, queryModel: Query): InsightResult[] {
 		switch (order) {
 			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "audit":
 			case this.validQueryHelpers.findDatasetId(queryModel) + "_" + "avg":

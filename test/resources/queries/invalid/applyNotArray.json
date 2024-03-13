@@ -1,0 +1,28 @@
+{
+	"title": "applyNotArray",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 95
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_title",
+				"overallAvg"
+			],
+			"ORDER": "overallAvg"
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_title",
+				"a"
+			],
+			"APPLY": {
+				"overallAvg": "a"
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

@@ -1,4 +1,4 @@
-import {Query, Where} from "./QueryModel";
+import {Query, Where} from "./QueryStructure";
 import {InsightDataset, InsightError, InsightResult, ResultTooLargeError} from "./IInsightFacade";
 import {Section} from "./InsightFacade";
 import e from "express";
@@ -11,18 +11,18 @@ export default class ValidQueryHelpers {
 		return keyPair.substring(0,underscoreIndex);
 	}
 
-	public getAll(dataset: any, id: string) {
-		const returnResult: InsightResult[] = [];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
-		for (const element of dataset) {
-			let resultElement: InsightResult = {};
-			for (const attribute of attributes) {
-				resultElement[id + "_" + attribute] = element[attribute];
-			}
-			returnResult.push(resultElement);
-		}
-		return returnResult;
-	}
+	// public getAll(dataset: any, id: string) {
+	// 	const returnResult: InsightResult[] = [];
+	// 	const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+	// 	for (const element of dataset) {
+	// 		let resultElement: InsightResult = {};
+	// 		for (const attribute of attributes) {
+	// 			resultElement[id + "_" + attribute] = element[attribute];
+	// 		}
+	// 		returnResult.push(resultElement);
+	// 	}
+	// 	return returnResult;
+	// }
 
 	public filterResult(dataset: any, where: Where, id: string): InsightResult[] {
 		const returnResult: InsightResult[] = [];
@@ -51,12 +51,6 @@ export default class ValidQueryHelpers {
 		} else if (where.AND !== undefined) {
 			return this.handleAND(where.AND, dataset, id);
 		} else if (where.OR !== undefined) {
-			// const length = where.OR.length;
-			// const result: InsightResult[] = [];
-			// for (const filter of where.OR) {
-			// 	let r = this.filterResult(dataset, filter, id);
-			// 	result.push(...r);
-			// }
 			return this.handleOR(where.OR, dataset, id);
 		}
 		return returnResult;
@@ -68,7 +62,13 @@ export default class ValidQueryHelpers {
 		for (const result of results) {
 			const filteredResult: InsightResult = {}; // Create a new object for each iteration
 			for (const attribute of attributes) {
-				filteredResult[key + "_" + attribute] = result[key + "_" + attribute];
+				const defaultAttributes = ["uuid", "id", "title", "instructor", "dept",
+					"year", "avg", "pass", "fail", "audit"];
+				if (defaultAttributes.includes(attribute)) {
+					filteredResult[key + "_" + attribute] = result[key + "_" + attribute];
+				} else {
+					filteredResult[attribute] = result[attribute];
+				}
 			}
 			filteredResults.push(filteredResult);
 		}
@@ -225,10 +225,15 @@ export default class ValidQueryHelpers {
 	}
 
 	public getAttributes(columns: string[]): string[] {
-		const i = columns[0].indexOf("_");
+		// const i = columns[0].indexOf("_");
 		const attributes: string[] = [];
 		for (const column of columns) {
-			attributes.push(column.substring(i + 1, column.length));
+			const i = column.indexOf("_");
+			if (i === -1) {
+				attributes.push(column);
+			} else {
+				attributes.push(column.substring(i + 1, column.length));
+			}
 		}
 		return attributes;
 	}

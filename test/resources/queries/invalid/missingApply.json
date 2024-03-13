@@ -1,0 +1,23 @@
+{
+	"title": "missingApply",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 95
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_title",
+				"overallAvg"
+			]
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_title"
+			]
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
