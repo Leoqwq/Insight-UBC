@@ -16,6 +16,7 @@ import {CompoundOrder, Query} from "./QueryStructure";
 import {SortHelpers} from "./SortHelpers";
 import AddRoomDatasetHelpers from "./AddRoomDatasetHelpers";
 import AddSectionDatasetHelpers from "./AddSectionDatasetHelpers";
+import {GroupBy} from "./GroupBy";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -371,17 +372,20 @@ export default class InsightFacade implements IInsightFacade {
 		const filePath = path.join(this.dataDir, `${targetDatasetId}.json`);
 		let section = await fs.readJson(filePath);
 		let data = JSON.parse(section);
-		const dataToBeReturned = this.validQueryHelpers.filterResult(data, queryModel.WHERE, targetDatasetId);
+		let dataToBeReturned = this.validQueryHelpers.filterResult(data, queryModel.WHERE, targetDatasetId);
 		if (dataToBeReturned.length > 5000) {
 			return Promise.reject(new ResultTooLargeError());
 		}
 		if (queryModel.OPTIONS.ORDER === undefined) {
+			const groupBy = new GroupBy();
+			dataToBeReturned = groupBy.handleGroup(dataToBeReturned, queryModel);
 			return this.validQueryHelpers.filterColumns(queryModel, dataToBeReturned, targetDatasetId);
 		} else {
 			const sortHelpers: SortHelpers = new SortHelpers();
+			const groupBy = new GroupBy();
+			dataToBeReturned = groupBy.handleGroup(dataToBeReturned, queryModel);
 			const data1 = sortHelpers.applyOrder(this.validQueryHelpers.filterColumns(queryModel,
 				dataToBeReturned, targetDatasetId), queryModel.OPTIONS.ORDER, queryModel, this.validQueryHelpers);
-			console.log(data1);
 			return data1;
 		}
 	}

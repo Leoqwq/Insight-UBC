@@ -534,14 +534,17 @@ describe("InsightFacade", function () {
 		let sections: string;
 		let cpscSections: string;
 		let facade: InsightFacade;
+		let rooms: string;
 
 		before(async function() {
 			await clearDisk();
 			sections = await getContentFromArchives("pair.zip");
 			cpscSections = await getContentFromArchives("cpsc_courses.zip");
+			rooms = await getContentFromArchives("campus.zip");
 			facade = new InsightFacade();
 			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
 			await facade.addDataset("cpsc", cpscSections, InsightDatasetKind.Sections);
+			await facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
 		});
 
 		describe("Checking for valid query argument to performQuery", function() {

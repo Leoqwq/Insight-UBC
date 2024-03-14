@@ -3,6 +3,7 @@ import {InsightDataset, InsightError, InsightResult, ResultTooLargeError} from "
 import {Section} from "./InsightFacade";
 import e from "express";
 import {GeneralHelpers} from "./GeneralHelpers";
+import {GroupBy} from "./GroupBy";
 
 export default class ValidQueryHelpers {
 	public findDatasetId(validQuery: Query): string {
@@ -33,7 +34,9 @@ export default class ValidQueryHelpers {
 	public filterResult(dataset: any, where: Where, id: string): InsightResult[] {
 		const returnResult: InsightResult[] = [];
 		if (Object.keys(where).length === 0) {
-			const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+			const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit",
+				"fullname", "shortname", "number", "name", "address", "lat", "lon", "seats", "type",
+				"furniture", "href"];
 			for (const element of dataset) {
 				let resultElement: InsightResult = {};
 				for (const attribute of attributes) {
@@ -69,7 +72,8 @@ export default class ValidQueryHelpers {
 			const filteredResult: InsightResult = {}; // Create a new object for each iteration
 			for (const attribute of attributes) {
 				const defaultAttributes = ["uuid", "id", "title", "instructor", "dept",
-					"year", "avg", "pass", "fail", "audit"];
+					"year", "avg", "pass", "fail", "audit", "fullname", "shortname", "number", "name", "address",
+					"lat", "lon", "seats", "type", "furniture", "href"];
 				if (defaultAttributes.includes(attribute)) {
 					filteredResult[key + "_" + attribute] = result[key + "_" + attribute];
 				} else {
@@ -116,7 +120,9 @@ export default class ValidQueryHelpers {
 		const field = key.substring(i + 1, key.length);
 		const array = Object.entries(is);
 		const value: string = array[0][1];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		const attributes = ["uuid", "id", "title", "instructor", "dept",
+			"year", "avg", "pass", "fail", "audit", "fullname", "shortname", "number", "name", "address",
+			"lat", "lon", "seats", "type", "furniture", "href"];
 		for (const element of dataset) {
 			const generalHelpers = new GeneralHelpers();
 			if (generalHelpers.satisfy(this.findElementValue(field, element) as string, value)) {
@@ -137,7 +143,9 @@ export default class ValidQueryHelpers {
 		const field = key.substring(i + 1, key.length);
 		const gtArray = Object.entries(gt);
 		const value: number = gtArray[0][1];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit",
+			"fullname", "shortname", "number", "name", "address", "lat", "lon", "seats", "type",
+			"furniture", "href"];
 		for (const element of dataset) {
 			if (this.findElementValue(field, element) > value) {
 				let resultElement: InsightResult = {};
@@ -157,7 +165,9 @@ export default class ValidQueryHelpers {
 		const field = key.substring(i + 1, key.length);
 		const ltArray = Object.entries(lt);
 		const value: number = ltArray[0][1];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit",
+			"fullname", "shortname", "number", "name", "address", "lat", "lon", "seats", "type",
+			"furniture", "href"];
 		for (const element of dataset) {
 			if (this.findElementValue(field, element) < value) {
 				let resultElement: InsightResult = {};
@@ -177,7 +187,9 @@ export default class ValidQueryHelpers {
 		const field = key.substring(i + 1, key.length);
 		const eqArray = Object.entries(eq);
 		const value: number = eqArray[0][1];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit",
+			"fullname", "shortname", "number", "name", "address", "lat", "lon", "seats", "type",
+			"furniture", "href"];
 		for (const element of dataset) {
 			if (this.findElementValue(field, element) === value) {
 				let resultElement: InsightResult = {};
@@ -191,30 +203,31 @@ export default class ValidQueryHelpers {
 	}
 
 	public findElementValue(field: string, element: any): number | string {
-		switch (field) {
-			case "uuid":
-				return element.uuid;
-			case "id":
-				return element.id;
-			case "title":
-				return element.title;
-			case "instructor":
-				return element.instructor;
-			case "dept":
-				return element.dept;
-			case "year":
-				return element.year;
-			case "avg":
-				return element.avg;
-			case "pass":
-				return element.pass;
-			case "fail":
-				return element.fail;
-			case "audit":
-				return element.audit;
-			default:
-				return -1;
-		}
+		// switch (field) {
+		// 	case "uuid":
+		// 		return element.uuid;
+		// 	case "id":
+		// 		return element.id;
+		// 	case "title":
+		// 		return element.title;
+		// 	case "instructor":
+		// 		return element.instructor;
+		// 	case "dept":
+		// 		return element.dept;
+		// 	case "year":
+		// 		return element.year;
+		// 	case "avg":
+		// 		return element.avg;
+		// 	case "pass":
+		// 		return element.pass;
+		// 	case "fail":
+		// 		return element.fail;
+		// 	case "audit":
+		// 		return element.audit;
+		// 	default:
+		// 		return -1;
+		// }
+		return element[field];
 	}
 
 	public getAttributes(columns: string[]): string[] {
@@ -260,7 +273,9 @@ export default class ValidQueryHelpers {
 		const field = key.substring(i + 1, key.length);
 		const array = Object.entries(is);
 		const value: string = array[0][1];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit",
+			"fullname", "shortname", "number", "name", "address", "lat", "lon", "seats", "type",
+			"furniture", "href"];
 		for (const element of dataset) {
 			const generalHelpers = new GeneralHelpers();
 			if (!generalHelpers.satisfy(this.findElementValue(field, element) as string, value)) {
@@ -281,7 +296,9 @@ export default class ValidQueryHelpers {
 		const field = key.substring(i + 1, key.length);
 		const eqArray = Object.entries(eq);
 		const value: number = eqArray[0][1];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit",
+			"fullname", "shortname", "number", "name", "address", "lat", "lon", "seats", "type",
+			"furniture", "href"];
 		for (const element of dataset) {
 			if (this.findElementValue(field, element) !== value) {
 				let resultElement: InsightResult = {};
@@ -301,7 +318,9 @@ export default class ValidQueryHelpers {
 		const field = key.substring(i + 1, key.length);
 		const ltArray = Object.entries(lt);
 		const value: number = ltArray[0][1];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit",
+			"fullname", "shortname", "number", "name", "address", "lat", "lon", "seats", "type",
+			"furniture", "href"];
 		for (const element of dataset) {
 			if (this.findElementValue(field, element) >= value) {
 				let resultElement: InsightResult = {};
@@ -321,7 +340,9 @@ export default class ValidQueryHelpers {
 		const field = key.substring(i + 1, key.length);
 		const gtArray = Object.entries(gt);
 		const value: number = gtArray[0][1];
-		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit"];
+		const attributes = ["uuid", "id", "title", "instructor", "dept", "year", "avg", "pass", "fail", "audit",
+			"fullname", "shortname", "number", "name", "address", "lat", "lon", "seats", "type",
+			"furniture", "href"];
 		for (const element of dataset) {
 			if (this.findElementValue(field, element) <= value) {
 				let resultElement: InsightResult = {};
