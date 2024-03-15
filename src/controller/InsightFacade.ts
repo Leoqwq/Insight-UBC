@@ -373,12 +373,15 @@ export default class InsightFacade implements IInsightFacade {
 		let section = await fs.readJson(filePath);
 		let data = JSON.parse(section);
 		let dataToBeReturned = this.validQueryHelpers.filterResult(data, queryModel.WHERE, targetDatasetId);
-		if (dataToBeReturned.length > 5000) {
+		if (dataToBeReturned.length > 5000 && queryModel.TRANSFORMATIONS == null) {
 			return Promise.reject(new ResultTooLargeError());
 		}
 		if (queryModel.OPTIONS.ORDER === undefined) {
 			const groupBy = new GroupBy();
 			dataToBeReturned = groupBy.handleGroup(dataToBeReturned, queryModel);
+			if (dataToBeReturned.length > 5000) {
+				return Promise.reject(new ResultTooLargeError());
+			}
 			return this.validQueryHelpers.filterColumns(queryModel, dataToBeReturned, targetDatasetId);
 		} else {
 			const sortHelpers: SortHelpers = new SortHelpers();
@@ -386,6 +389,9 @@ export default class InsightFacade implements IInsightFacade {
 			dataToBeReturned = groupBy.handleGroup(dataToBeReturned, queryModel);
 			const data1 = sortHelpers.applyOrder(this.validQueryHelpers.filterColumns(queryModel,
 				dataToBeReturned, targetDatasetId), queryModel.OPTIONS.ORDER, queryModel, this.validQueryHelpers);
+			if (data1.length > 5000) {
+				return Promise.reject(new ResultTooLargeError());
+			}
 			return data1;
 		}
 	}

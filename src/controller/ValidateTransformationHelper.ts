@@ -8,8 +8,22 @@ export class ValidateTransformationHelper {
 	}
 
 	public meetBasicReq(transformations: Transformation) {
-		return !(transformations.APPLY == null || transformations.GROUP == null || transformations.GROUP.length === 0 ||
-			!Array.isArray(transformations.APPLY));
+		// console.log(Object.keys(transformations.APPLY));
+		if (!(transformations.APPLY == null || transformations.GROUP == null || transformations.GROUP.length === 0 ||
+		!Array.isArray(transformations.APPLY))) {
+			const listOfKeys: string[] = [];
+			for (const a of transformations.APPLY) {
+				if (!listOfKeys.includes(Object.keys(a)[0])) {
+					listOfKeys.push(Object.keys(a)[0]);
+				} else {
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+		// return !(transformations.APPLY == null || transformations.GROUP == null || transformations.GROUP.length === 0 ||
+		// 	!Array.isArray(transformations.APPLY));
 	}
 
 	public getType(q: Query): InsightDatasetKind | undefined {

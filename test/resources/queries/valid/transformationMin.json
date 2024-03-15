@@ -1,0 +1,175 @@
+{
+	"title": "transformationMin",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 95
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"minAvg"
+			]
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"minAvg": {
+						"MIN": "sections_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "adhe",
+			"minAvg": 96.11
+		},
+		{
+			"sections_dept": "apsc",
+			"minAvg": 95.05
+		},
+		{
+			"sections_dept": "arst",
+			"minAvg": 96.94
+		},
+		{
+			"sections_dept": "audi",
+			"minAvg": 96.9
+		},
+		{
+			"sections_dept": "bmeg",
+			"minAvg": 95.15
+		},
+		{
+			"sections_dept": "chbe",
+			"minAvg": 95.31
+		},
+		{
+			"sections_dept": "civl",
+			"minAvg": 96.27
+		},
+		{
+			"sections_dept": "cnps",
+			"minAvg": 95.36
+		},
+		{
+			"sections_dept": "crwr",
+			"minAvg": 95.7
+		},
+		{
+			"sections_dept": "edcp",
+			"minAvg": 95.58
+		},
+		{
+			"sections_dept": "edst",
+			"minAvg": 95.78
+		},
+		{
+			"sections_dept": "educ",
+			"minAvg": 95.16
+		},
+		{
+			"sections_dept": "eece",
+			"minAvg": 98.75
+		},
+		{
+			"sections_dept": "epse",
+			"minAvg": 95.11
+		},
+		{
+			"sections_dept": "etec",
+			"minAvg": 95.1
+		},
+		{
+			"sections_dept": "fipr",
+			"minAvg": 96.4
+		},
+		{
+			"sections_dept": "frst",
+			"minAvg": 96.36
+		},
+		{
+			"sections_dept": "hgse",
+			"minAvg": 95.26
+		},
+		{
+			"sections_dept": "kin",
+			"minAvg": 95.36
+		},
+		{
+			"sections_dept": "libr",
+			"minAvg": 96.1
+		},
+		{
+			"sections_dept": "math",
+			"minAvg": 95.56
+		},
+		{
+			"sections_dept": "midw",
+			"minAvg": 96.5
+		},
+		{
+			"sections_dept": "mine",
+			"minAvg": 95.18
+		},
+		{
+			"sections_dept": "mtrl",
+			"minAvg": 96.25
+		},
+		{
+			"sections_dept": "musc",
+			"minAvg": 95.38
+		},
+		{
+			"sections_dept": "nurs",
+			"minAvg": 95.13
+		},
+		{
+			"sections_dept": "pcth",
+			"minAvg": 96
+		},
+		{
+			"sections_dept": "phar",
+			"minAvg": 95.07
+		},
+		{
+			"sections_dept": "phil",
+			"minAvg": 96
+		},
+		{
+			"sections_dept": "phth",
+			"minAvg": 95.37
+		},
+		{
+			"sections_dept": "phys",
+			"minAvg": 95.43
+		},
+		{
+			"sections_dept": "plan",
+			"minAvg": 96.47
+		},
+		{
+			"sections_dept": "psyc",
+			"minAvg": 95.25
+		},
+		{
+			"sections_dept": "sowk",
+			"minAvg": 95.93
+		},
+		{
+			"sections_dept": "spph",
+			"minAvg": 95.09
+		},
+		{
+			"sections_dept": "thtr",
+			"minAvg": 95.2
+		}
+	]
+}
