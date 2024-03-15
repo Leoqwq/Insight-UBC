@@ -19,6 +19,9 @@ export class ValidateTransformationHelper {
 					return false;
 				}
 			}
+			if (listOfKeys.includes("")) {
+				return false;
+			}
 			return true;
 		}
 		return false;
