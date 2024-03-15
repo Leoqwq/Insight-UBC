@@ -1,0 +1,395 @@
+{
+	"title": "validApplySum",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 95
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_title",
+				"totalAvg"
+			]
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_title"
+			],
+			"APPLY": [
+				{
+					"totalAvg": {
+						"SUM": "sections_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_title": "dev wkshp/sem",
+			"totalAvg": 96.11
+		},
+		{
+			"sections_title": "eng mtls lab",
+			"totalAvg": 382.94
+		},
+		{
+			"sections_title": "aud&non-txt arch",
+			"totalAvg": 193.88
+		},
+		{
+			"sections_title": "audi prctcm iv",
+			"totalAvg": 193.8
+		},
+		{
+			"sections_title": "med tech project",
+			"totalAvg": 190.3
+		},
+		{
+			"sections_title": "thermodynamics",
+			"totalAvg": 191.08
+		},
+		{
+			"sections_title": "math operations",
+			"totalAvg": 190.62
+		},
+		{
+			"sections_title": "dynam struct 2",
+			"totalAvg": 192.54
+		},
+		{
+			"sections_title": "schl counselling",
+			"totalAvg": 191.56
+		},
+		{
+			"sections_title": "counsl adolescnt",
+			"totalAvg": 190.72
+		},
+		{
+			"sections_title": "career planning",
+			"totalAvg": 294.13
+		},
+		{
+			"sections_title": "prgm devl cnsl",
+			"totalAvg": 288.49
+		},
+		{
+			"sections_title": "",
+			"totalAvg": 95.36
+		},
+		{
+			"sections_title": "prep writ career",
+			"totalAvg": 191.4
+		},
+		{
+			"sections_title": "thesis",
+			"totalAvg": 773
+		},
+		{
+			"sections_title": "ds tec ii sc c&p",
+			"totalAvg": 191.16
+		},
+		{
+			"sections_title": "fn & educ change",
+			"totalAvg": 191.56
+		},
+		{
+			"sections_title": "adlt edu pract",
+			"totalAvg": 192.92
+		},
+		{
+			"sections_title": "res mthd in educ",
+			"totalAvg": 192.66
+		},
+		{
+			"sections_title": "multimedia sys",
+			"totalAvg": 197.5
+		},
+		{
+			"sections_title": "tch'g hghly able",
+			"totalAvg": 192
+		},
+		{
+			"sections_title": "intro excp child",
+			"totalAvg": 576.16
+		},
+		{
+			"sections_title": "tchg st visl imp",
+			"totalAvg": 190.54
+		},
+		{
+			"sections_title": "ed prg hghly abl",
+			"totalAvg": 190.44
+		},
+		{
+			"sections_title": "augmt&alt comm",
+			"totalAvg": 191
+		},
+		{
+			"sections_title": "tech for vis imp",
+			"totalAvg": 191.34
+		},
+		{
+			"sections_title": "assess lrn diffi",
+			"totalAvg": 585.93
+		},
+		{
+			"sections_title": "classroom mgmt",
+			"totalAvg": 382.68
+		},
+		{
+			"sections_title": "surv bhvr dis ch",
+			"totalAvg": 190.94
+		},
+		{
+			"sections_title": "educ stds autism",
+			"totalAvg": 878.32
+		},
+		{
+			"sections_title": "intr stat rs edu",
+			"totalAvg": 95.11
+		},
+		{
+			"sections_title": "hn dev: inf-adlt",
+			"totalAvg": 96.23
+		},
+		{
+			"sections_title": "able&creatv lrnr",
+			"totalAvg": 190.71
+		},
+		{
+			"sections_title": "dev el sk df&hrd",
+			"totalAvg": 196.9
+		},
+		{
+			"sections_title": "cur dev e df&hrd",
+			"totalAvg": 191.66
+		},
+		{
+			"sections_title": "specific lrn dis",
+			"totalAvg": 192.66
+		},
+		{
+			"sections_title": "basic princ meas",
+			"totalAvg": 382.86
+		},
+		{
+			"sections_title": "acad assess schl",
+			"totalAvg": 292.19
+		},
+		{
+			"sections_title": "sem in autism",
+			"totalAvg": 97.69
+		},
+		{
+			"sections_title": "thy cognt assess",
+			"totalAvg": 190.62
+		},
+		{
+			"sections_title": "dev neuropsych",
+			"totalAvg": 190.34
+		},
+		{
+			"sections_title": "exp des anl ed",
+			"totalAvg": 381.63
+		},
+		{
+			"sections_title": "cor des ed res",
+			"totalAvg": 289.51
+		},
+		{
+			"sections_title": "coll&uni teachng",
+			"totalAvg": 97.67
+		},
+		{
+			"sections_title": "indig, tech&ed",
+			"totalAvg": 573.78
+		},
+		{
+			"sections_title": "curric issu",
+			"totalAvg": 190.96
+		},
+		{
+			"sections_title": "tech math sci",
+			"totalAvg": 382.3
+		},
+		{
+			"sections_title": "mo pict prod i",
+			"totalAvg": 192.8
+		},
+		{
+			"sections_title": "ds intl forstry",
+			"totalAvg": 192.72
+		},
+		{
+			"sections_title": "islnd wild mgmt",
+			"totalAvg": 381.1
+		},
+		{
+			"sections_title": "kin project",
+			"totalAvg": 96
+		},
+		{
+			"sections_title": "phyl asp phy act",
+			"totalAvg": 382.84
+		},
+		{
+			"sections_title": "acad libraries",
+			"totalAvg": 192.2
+		},
+		{
+			"sections_title": "algebra ii",
+			"totalAvg": 192.88
+		},
+		{
+			"sections_title": "functional analy",
+			"totalAvg": 191.34
+		},
+		{
+			"sections_title": "prt diff equa i",
+			"totalAvg": 192.5
+		},
+		{
+			"sections_title": "diff geometry i",
+			"totalAvg": 194.5
+		},
+		{
+			"sections_title": "algb topology i",
+			"totalAvg": 199.56
+		},
+		{
+			"sections_title": "algb geometry i",
+			"totalAvg": 194.96
+		},
+		{
+			"sections_title": "lie theory i",
+			"totalAvg": 191.12
+		},
+		{
+			"sections_title": "harmonic anal i",
+			"totalAvg": 194.18
+		},
+		{
+			"sections_title": "probability ii",
+			"totalAvg": 193.66
+		},
+		{
+			"sections_title": "msc major essay",
+			"totalAvg": 96.33
+		},
+		{
+			"sections_title": "cnsl mat cr prov",
+			"totalAvg": 193
+		},
+		{
+			"sections_title": "seminar",
+			"totalAvg": 191.77
+		},
+		{
+			"sections_title": "mgmt sc meth",
+			"totalAvg": 286.47
+		},
+		{
+			"sections_title": "hydrmtllgcl rctr",
+			"totalAvg": 192.5
+		},
+		{
+			"sections_title": "orch repertoire",
+			"totalAvg": 191.05
+		},
+		{
+			"sections_title": "ubc chamb string",
+			"totalAvg": 193
+		},
+		{
+			"sections_title": "cl pro prim care",
+			"totalAvg": 965.54
+		},
+		{
+			"sections_title": "fam nrs pract",
+			"totalAvg": 782.5
+		},
+		{
+			"sections_title": "eth&profl issues",
+			"totalAvg": 388.12
+		},
+		{
+			"sections_title": "ms thesis",
+			"totalAvg": 96
+		},
+		{
+			"sections_title": "admn of injectns",
+			"totalAvg": 95.07
+		},
+		{
+			"sections_title": "log & crit think",
+			"totalAvg": 96
+		},
+		{
+			"sections_title": "clin make iv",
+			"totalAvg": 190.74
+		},
+		{
+			"sections_title": "quant fld theory",
+			"totalAvg": 190.86
+		},
+		{
+			"sections_title": "nat resrce mngmt",
+			"totalAvg": 192.94
+		},
+		{
+			"sections_title": "health psych",
+			"totalAvg": 192
+		},
+		{
+			"sections_title": "eth & prof clin",
+			"totalAvg": 191.5
+		},
+		{
+			"sections_title": "intro psychthrpy",
+			"totalAvg": 190.5
+		},
+		{
+			"sections_title": "masters thesis",
+			"totalAvg": 193
+		},
+		{
+			"sections_title": "social analysis",
+			"totalAvg": 384.16
+		},
+		{
+			"sections_title": "hlth & soc care",
+			"totalAvg": 96.09
+		},
+		{
+			"sections_title": "sociocult determ",
+			"totalAvg": 192.72
+		},
+		{
+			"sections_title": "work int health",
+			"totalAvg": 197.96
+		},
+		{
+			"sections_title": "an meth epid res",
+			"totalAvg": 95.11
+		},
+		{
+			"sections_title": "survlnc&monitrng",
+			"totalAvg": 193.6
+		},
+		{
+			"sections_title": "math mdl com dis",
+			"totalAvg": 191.5
+		},
+		{
+			"sections_title": "com hlth prom",
+			"totalAvg": 190.18
+		},
+		{
+			"sections_title": "scenery prod i",
+			"totalAvg": 190.4
+		}
+	]
+}

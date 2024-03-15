@@ -1,0 +1,395 @@
+{
+	"title": "validApplyCount",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 95
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_title",
+				"totalCount"
+			]
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_title"
+			],
+			"APPLY": [
+				{
+					"totalCount": {
+						"COUNT": "sections_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_title": "dev wkshp/sem",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "eng mtls lab",
+			"totalCount": 4
+		},
+		{
+			"sections_title": "aud&non-txt arch",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "audi prctcm iv",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "med tech project",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "thermodynamics",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "math operations",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "dynam struct 2",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "schl counselling",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "counsl adolescnt",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "career planning",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "prgm devl cnsl",
+			"totalCount": 3
+		},
+		{
+			"sections_title": "",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "prep writ career",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "thesis",
+			"totalCount": 3
+		},
+		{
+			"sections_title": "ds tec ii sc c&p",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "fn & educ change",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "adlt edu pract",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "res mthd in educ",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "multimedia sys",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "tch'g hghly able",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "intro excp child",
+			"totalCount": 3
+		},
+		{
+			"sections_title": "tchg st visl imp",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "ed prg hghly abl",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "augmt&alt comm",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "tech for vis imp",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "assess lrn diffi",
+			"totalCount": 5
+		},
+		{
+			"sections_title": "classroom mgmt",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "surv bhvr dis ch",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "educ stds autism",
+			"totalCount": 7
+		},
+		{
+			"sections_title": "intr stat rs edu",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "hn dev: inf-adlt",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "able&creatv lrnr",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "dev el sk df&hrd",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "cur dev e df&hrd",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "specific lrn dis",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "basic princ meas",
+			"totalCount": 3
+		},
+		{
+			"sections_title": "acad assess schl",
+			"totalCount": 3
+		},
+		{
+			"sections_title": "sem in autism",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "thy cognt assess",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "dev neuropsych",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "exp des anl ed",
+			"totalCount": 4
+		},
+		{
+			"sections_title": "cor des ed res",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "coll&uni teachng",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "indig, tech&ed",
+			"totalCount": 3
+		},
+		{
+			"sections_title": "curric issu",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "tech math sci",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "mo pict prod i",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "ds intl forstry",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "islnd wild mgmt",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "kin project",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "phyl asp phy act",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "acad libraries",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "algebra ii",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "functional analy",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "prt diff equa i",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "diff geometry i",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "algb topology i",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "algb geometry i",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "lie theory i",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "harmonic anal i",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "probability ii",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "msc major essay",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "cnsl mat cr prov",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "seminar",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "mgmt sc meth",
+			"totalCount": 3
+		},
+		{
+			"sections_title": "hydrmtllgcl rctr",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "orch repertoire",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "ubc chamb string",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "cl pro prim care",
+			"totalCount": 5
+		},
+		{
+			"sections_title": "fam nrs pract",
+			"totalCount": 4
+		},
+		{
+			"sections_title": "eth&profl issues",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "ms thesis",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "admn of injectns",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "log & crit think",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "clin make iv",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "quant fld theory",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "nat resrce mngmt",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "health psych",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "eth & prof clin",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "intro psychthrpy",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "masters thesis",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "social analysis",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "hlth & soc care",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "sociocult determ",
+			"totalCount": 2
+		},
+		{
+			"sections_title": "work int health",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "an meth epid res",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "survlnc&monitrng",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "math mdl com dis",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "com hlth prom",
+			"totalCount": 1
+		},
+		{
+			"sections_title": "scenery prod i",
+			"totalCount": 1
+		}
+	]
+}

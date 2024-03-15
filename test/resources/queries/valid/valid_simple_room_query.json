@@ -1,0 +1,41 @@
+{
+	"title": "valid_simple_room_query",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"rooms_shortname": "HEBB"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname",
+				"rooms_fullname",
+				"rooms_seats"
+			],
+			"ORDER": "rooms_seats"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"rooms_shortname": "HEBB",
+			"rooms_fullname": "Hebb",
+			"rooms_seats": 54
+		},
+		{
+			"rooms_shortname": "HEBB",
+			"rooms_fullname": "Hebb",
+			"rooms_seats": 54
+		},
+		{
+			"rooms_shortname": "HEBB",
+			"rooms_fullname": "Hebb",
+			"rooms_seats": 54
+		},
+		{
+			"rooms_shortname": "HEBB",
+			"rooms_fullname": "Hebb",
+			"rooms_seats": 375
+		}
+	]
+}

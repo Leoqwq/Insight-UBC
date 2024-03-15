@@ -1,24 +1,23 @@
-import {InsightDataset} from "./IInsightFacade";
-import exp from "constants";
-import {CompoundOrder, Option, Query, Transformation, Where} from "./QueryStructure";
-import {query} from "express";
-import ValidQueryHelpers from "./ValidQueryHelpers";
+import {InsightDataset, InsightDatasetKind} from "./IInsightFacade";
+import {CompoundOrder, Option, Query, Where} from "./QueryStructure";
 import {ValidateTransformationHelper} from "./ValidateTransformationHelper";
+import {query} from "express";
+import {GeneralHelpers} from "./GeneralHelpers";
 
 export default class ValidationHelpers {
-
+	private generalHelpers = new GeneralHelpers();
 	private datasets: InsightDataset[];
 	public initialMorSKey: string = "_";
 	constructor(datasets: InsightDataset[]) {
 		this.datasets = datasets;
 	}
 
-	public validateAnd(AND: Where[]) {
+	public validateAnd(AND: Where[], q: Query) {
 		if (AND.length === 0) {
 			return false;
 		} else {
 			for (const item of AND) {
-				if (!this.validateQueryWhere(item)) {
+				if (!this.validateQueryWhere(item, q)) {
 					return false;
 				}
 			}
@@ -26,12 +25,12 @@ export default class ValidationHelpers {
 		return true;
 	}
 
-	public validateOr(OR: Where[]): boolean {
+	public validateOr(OR: Where[], q: Query): boolean {
 		if (OR.length === 0) {
 			return false;
 		} else {
 			for (const item of OR) {
-				if (!this.validateQueryWhere(item)) {
+				if (!this.validateQueryWhere(item, q)) {
 					return false;
 				}
 			}
@@ -39,14 +38,14 @@ export default class ValidationHelpers {
 		return true;
 	}
 
-	public validateNot(NOT: Where): boolean {
+	public validateNot(NOT: Where, q: Query): boolean {
 		if (Object.keys(NOT).length !== 1) {
 			return false;
 		}
-		return this.validateQueryWhere(NOT);
+		return this.validateQueryWhere(NOT, q);
 	}
 
-	public validateGT(GT: object) {
+	public validateGT(GT: object, q: Query) {
 		if (Object.keys(GT).length !== 1) {
 			return false;
 		}
@@ -71,7 +70,10 @@ export default class ValidationHelpers {
 		if (!ids.includes(idString)) {
 			return false;
 		}
-		const possibleMField: string[] = ["avg", "pass", "fail", "audit", "year"];
+		const possibleMField: string[] = this.generalHelpers.assignMField(q, this.datasets);
+		if (possibleMField.length === 0) {
+			return false;
+		}
 		if (!possibleMField.includes(mField)) {
 			return false;
 		}
@@ -81,7 +83,7 @@ export default class ValidationHelpers {
 		return true;
 	}
 
-	public validateLT(LT: object) {
+	public validateLT(LT: object, q: Query) {
 		if (Object.keys(LT).length !== 1) {
 			return false;
 		}
@@ -106,7 +108,10 @@ export default class ValidationHelpers {
 		if (!ids.includes(idString)) {
 			return false;
 		}
-		const possibleMField: string[] = ["avg", "pass", "fail", "audit", "year"];
+		const possibleMField: string[] = this.generalHelpers.assignMField(q, this.datasets);
+		if (possibleMField.length === 0) {
+			return false;
+		}
 		if(!possibleMField.includes(mField)) {
 			return false;
 		}
@@ -116,7 +121,7 @@ export default class ValidationHelpers {
 		return true;
 	}
 
-	public validateEQ(EQ: object) {
+	public validateEQ(EQ: object, q: Query) {
 		if (Object.keys(EQ).length !== 1) {
 			return false;
 		}
@@ -141,7 +146,7 @@ export default class ValidationHelpers {
 		if (!ids.includes(idString)) {
 			return false;
 		}
-		const possibleMField: string[] = ["avg", "pass", "fail", "audit", "year"];
+		const possibleMField: string[] = this.generalHelpers.assignMField(q, this.datasets);
 		if(!possibleMField.includes(mField)) {
 			return false;
 		}
@@ -151,7 +156,7 @@ export default class ValidationHelpers {
 		return true;
 	}
 
-	public validateIS(IS: object) {
+	public validateIS(IS: object, q: Query) {
 		{
 			if (Object.keys(IS).length !== 1) {
 				return false;
@@ -177,7 +182,13 @@ export default class ValidationHelpers {
 			if (!ids.includes(idString)) {
 				return false;
 			}
-			const possibleSField: string[] = ["dept", "id", "instructor", "title", "uuid"];
+			const possibleSField: string[] = this.generalHelpers.assignSField(q, this.datasets);
+			if (possibleSField.length === 0) {
+				return false;
+			}
+			if (possibleSField.length === 0) {
+				return false;
+			}
 			if(!possibleSField.includes(sField)) {
 				return false;
 			}
@@ -192,21 +203,21 @@ export default class ValidationHelpers {
 		}
 	}
 
-	public validateQueryWhere(whereBlock: Where): boolean {
+	public validateQueryWhere(whereBlock: Where, q: Query): boolean {
 		if (whereBlock.AND !== undefined) {
-			return this.validateAnd(whereBlock.AND);
+			return this.validateAnd(whereBlock.AND, q);
 		} else if (whereBlock.OR !== undefined) {
-			return this.validateOr(whereBlock.OR);
+			return this.validateOr(whereBlock.OR, q);
 		} else if (whereBlock.NOT !== undefined) {
-			return this.validateNot(whereBlock.NOT);
+			return this.validateNot(whereBlock.NOT, q);
 		} else if (whereBlock.GT !== undefined) {
-			return this.validateGT(whereBlock.GT);
+			return this.validateGT(whereBlock.GT, q);
 		} else if (whereBlock.LT !== undefined) {
-			return this.validateLT(whereBlock.LT);
+			return this.validateLT(whereBlock.LT, q);
 		} else if (whereBlock.EQ !== undefined) {
-			return this.validateEQ(whereBlock.EQ);
+			return this.validateEQ(whereBlock.EQ, q);
 		} else if (whereBlock.IS !== undefined) {
-			return this.validateIS(whereBlock.IS);
+			return this.validateIS(whereBlock.IS, q);
 		} else if (Object.keys(whereBlock).length === 0) {
 			return true;
 		}
@@ -214,14 +225,15 @@ export default class ValidationHelpers {
 	}
 
 	public validateQueryOption(optionBlock: Option, q: Query): boolean {
+		const generalHelpers = new GeneralHelpers();
 		if (optionBlock.COLUMNS === undefined) {
 			return false;
 		} else {
 			if (optionBlock.ORDER !== undefined && typeof (optionBlock.ORDER) === "string") {
 				return this.validateColumns(optionBlock.COLUMNS, q) &&
-					this.validateOrderSimple(optionBlock.ORDER, optionBlock.COLUMNS);
+					generalHelpers.validateOrderSimple(optionBlock.ORDER, optionBlock.COLUMNS);
 			} else if (optionBlock.ORDER !== undefined && typeof (optionBlock.ORDER) === "object") {
-				return this.validateOrderComplex(optionBlock.ORDER, optionBlock.COLUMNS) &&
+				return generalHelpers.validateOrderComplex(optionBlock.ORDER, optionBlock.COLUMNS) &&
 					this.validateColumns(optionBlock.COLUMNS, q);
 			}
 			return this.validateColumns(optionBlock.COLUMNS, q);
@@ -232,8 +244,7 @@ export default class ValidationHelpers {
 		if (COLUMNS.length === 0) {
 			return false;
 		}
-		const possibleKey: string[] = ["avg", "pass", "fail", "audit", "year",
-			"dept", "id", "instructor", "title", "uuid"];
+		const possibleKey = this.generalHelpers.assignKeys(q, this.datasets);
 		if (q.TRANSFORMATIONS !== undefined) {
 			for (const a of q.TRANSFORMATIONS.APPLY) {
 				const keys = Object.keys(a);
@@ -276,37 +287,23 @@ export default class ValidationHelpers {
 		return true;
 	}
 
-	public validateOrderSimple(Order: string, COLUMNS: string[]): boolean {
-		return COLUMNS.includes(Order);
-	}
-
-	public validateOrderComplex(order: CompoundOrder, COLUMNS: string[]) {
-		if (!(order.dir === "UP" || order.dir === "DOWN") || order.keys == null) {
-			return false;
-		}
-		for (let key of order.keys) {
-			if (!COLUMNS.includes(key)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	public validateQuery(queryModel: Query) {
 		if(queryModel.WHERE == null) {
+			this.initialMorSKey = "_";
 			return false;
 		} else if(queryModel.OPTIONS == null) {
+			this.initialMorSKey = "_";
 			return false;
 		} else {
 			if (queryModel.TRANSFORMATIONS == null) {
-				const isValid: boolean = this.validateQueryWhere(queryModel.WHERE) &&
+				const isValid: boolean = this.validateQueryWhere(queryModel.WHERE, queryModel) &&
 					this.validateQueryOption(queryModel.OPTIONS, queryModel);
 				this.initialMorSKey = "_";
 				return isValid;
 			}
-			const validateTransformationHelper = new ValidateTransformationHelper();
+			const validateTransformationHelper = new ValidateTransformationHelper(this.datasets);
 			const isValid: boolean =
-				this.validateQueryWhere(queryModel.WHERE) &&
+				this.validateQueryWhere(queryModel.WHERE, queryModel) &&
 				validateTransformationHelper.validateTransformation(queryModel.TRANSFORMATIONS, queryModel) &&
 				this.validateQueryOption(queryModel.OPTIONS, queryModel);
 			this.initialMorSKey = "_";
