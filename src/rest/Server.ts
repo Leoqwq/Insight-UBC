@@ -3,7 +3,6 @@ import * as http from "http";
 import cors from "cors";
 import InsightFacade from "../controller/InsightFacade";
 import {InsightDatasetKind, InsightError, NotFoundError} from "../controller/IInsightFacade";
-import {ITestQuery} from "../../test/controller/InsightFacade.spec";
 
 export default class Server {
 	private readonly port: number;
