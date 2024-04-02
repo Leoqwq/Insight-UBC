@@ -1,16 +1,20 @@
 import express, {Application, Request, Response} from "express";
 import * as http from "http";
 import cors from "cors";
+import InsightFacade from "../controller/InsightFacade";
+import {InsightDatasetKind, InsightError, NotFoundError} from "../controller/IInsightFacade";
 
 export default class Server {
 	private readonly port: number;
 	private express: Application;
 	private server: http.Server | undefined;
+	private insightFacade: InsightFacade;
 
 	constructor(port: number) {
 		console.info(`Server::<init>( ${port} )`);
 		this.port = port;
 		this.express = express();
+		this.insightFacade = new InsightFacade();
 
 		this.registerMiddleware();
 		this.registerRoutes();
@@ -18,7 +22,7 @@ export default class Server {
 		// NOTE: you can serve static frontend files in from your express server
 		// by uncommenting the line below. This makes files in ./frontend/public
 		// accessible at http://localhost:<port>/
-		// this.express.use(express.static("./frontend/public"))
+		this.express.use(express.static("./frontend/public"));
 	}
 
 	/**
@@ -85,7 +89,75 @@ export default class Server {
 		this.express.get("/echo/:msg", Server.echo);
 
 		// TODO: your other endpoints should go here
+		this.express.put("/dataset/:id/:kind", this.handlePutDataset.bind(this));
 
+		this.express.delete("/dataset/:id", this.handleDeleteDataset.bind(this));
+
+		this.express.post("/query", this.handlePostQuery.bind(this));
+
+		this.express.get("/datasets", this.handleGetDatasets.bind(this));
+	}
+
+	private handlePutDataset(req: Request, res: Response) {
+		const id: string = req.params.id;
+		let kind: InsightDatasetKind;
+		const buffer: Buffer = req.body;
+		const content: string = buffer.toString("base64");
+
+		if (req.params.kind === "sections") {
+			kind = InsightDatasetKind.Sections;
+		} else {
+			kind = InsightDatasetKind.Rooms;
+		}
+
+		this.insightFacade.addDataset(id, content, kind)
+			.then((result) => {
+				res.status(200).json({result: result});
+			})
+			.catch((err) => {
+				res.status(400).json({error: err.message});
+			});
+	}
+
+	private handleDeleteDataset(req: Request, res: Response) {
+		const id: string = req.params.id;
+
+		this.insightFacade.removeDataset(id)
+			.then((result) => {
+				res.status(200).json({result: result});
+			})
+			.catch((err) => {
+				if (err instanceof NotFoundError) {
+					res.status(404).json({error: err.message});
+				} else if (err instanceof InsightError) {
+					res.status(400).json({error: err.message});
+				} else {
+					res.status(500).json({error: "Internal Server Error"});
+				}
+			});
+	}
+
+	private handlePostQuery(req: Request, res: Response) {
+		const query: object = req.body;
+		console.log(query);
+
+		this.insightFacade.performQuery(query)
+			.then((result) => {
+				res.status(200).json({result: result});
+			})
+			.catch((err) => {
+				res.status(400).json({error: err.message});
+			});
+	}
+
+	private handleGetDatasets(req: Request, res: Response) {
+		this.insightFacade.listDatasets()
+			.then((result) => {
+				res.status(200).json({result: result});
+			})
+			.catch(() => {
+				res.status(500).json({error: "Internal Server Error"});
+			});
 	}
 
 	// The next two methods handle the echo service.
