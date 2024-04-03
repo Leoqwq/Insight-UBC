@@ -1,4 +1,5 @@
 document.getElementById("click-me-button").addEventListener("click", handleClickMe);
+
 const addDatasetForm = document.getElementById("add-dataset-form");
 const datasetIdInput = document.getElementById("dataset-id-input");
 const datasetFileInput = document.getElementById("dataset-file-input");
@@ -33,6 +34,7 @@ addDatasetForm.addEventListener("submit", e => {
 		alert("Error: " + error.message);
 	});
 });
+
 function handleClickMe() {
 	alert("Button Clicked!");
 }
