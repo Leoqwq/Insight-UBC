@@ -4,7 +4,7 @@ const datasetIdInput = document.getElementById("dataset-id-input");
 const datasetFileInput = document.getElementById("dataset-file-input");
 const removeDatasetButton = document.getElementById("remove-dataset-button");
 const datasetIdInputRem = document.getElementById("dataset-id-input-remove");
-
+const viewDatasetsButton = document.getElementById("view-dataset-button");
 removeDatasetButton.addEventListener("click", function () {
 	const id = datasetIdInputRem.value;
 
