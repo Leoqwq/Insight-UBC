@@ -20,11 +20,45 @@ removeDatasetButton.addEventListener("click", function () {
 		}
 	}).then(data => {
 		alert(`Dataset ${id} removed successfully!`);
+		updateList();
 	}).catch(error => {
 		alert("Error: " + error.message);
 	});
 });
 
+viewDatasetsButton.addEventListener("click", function () {
+
+	fetch("/datasets", {
+		method: "get"
+	}).then(response => {
+		if (!response.ok) {
+			throw new Error("Failed to get datasets");
+		}
+		return response.json();
+	}).then(datasets => {
+		const results = datasets.result;
+		showResults(results);
+	}).catch(error => {
+		alert("Error: " + error.message);
+	});
+});
+
+function updateList() {
+
+	fetch("/datasets", {
+		method: "get"
+	}).then(response => {
+		if (!response.ok) {
+			throw new Error("Failed to get datasets");
+		}
+		return response.json();
+	}).then(datasets => {
+		const results = datasets.result;
+		showResults(results);
+	}).catch(error => {
+		alert("Error: " + error.message);
+	});
+}
 addDatasetForm.addEventListener("submit", e => {
 	e.preventDefault();
 	const id = datasetIdInput.value;
@@ -47,10 +81,26 @@ addDatasetForm.addEventListener("submit", e => {
 		return response.json();
 	}).then(data => {
 		alert(`Dataset ${id} added successfully!`);
+		updateList();
 	}).catch(error => {
 		alert("Error: " + error.message);
 	});
 });
+
+function showResults(results) {
+	const datasetList = document.getElementById("dataset-list");
+	datasetList.innerHTML = "Existing Dataset IDs: ";
+	if (results.length === 0) {
+		const listItem = document.createElement("li");
+		listItem.textContent = "No available dataset to show";
+		datasetList.appendChild(listItem);
+	}
+	results.forEach(result => {
+		const listItem = document.createElement("li");
+		listItem.textContent = result.id;
+		datasetList.appendChild(listItem);
+	});
+}
 // function handleClickMe() {
 // 	alert("Button Clicked!");
 // }
