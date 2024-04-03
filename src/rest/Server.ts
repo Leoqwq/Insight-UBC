@@ -84,10 +84,6 @@ export default class Server {
 
 	// Registers all request handlers to routes
 	private registerRoutes() {
-		// This is an example endpoint this you can invoke by accessing this URL in your browser:
-		// http://localhost:4321/echo/hello
-		this.express.get("/echo/:msg", Server.echo);
-
 		// TODO: your other endpoints should go here
 		this.express.put("/dataset/:id/:kind", this.handlePutDataset.bind(this));
 
@@ -131,15 +127,12 @@ export default class Server {
 					res.status(404).json({error: err.message});
 				} else if (err instanceof InsightError) {
 					res.status(400).json({error: err.message});
-				} else {
-					res.status(500).json({error: "Internal Server Error"});
 				}
 			});
 	}
 
 	private handlePostQuery(req: Request, res: Response) {
 		const query: object = req.body;
-		console.log(query);
 
 		this.insightFacade.performQuery(query)
 			.then((result) => {
@@ -158,26 +151,5 @@ export default class Server {
 			.catch(() => {
 				res.status(500).json({error: "Internal Server Error"});
 			});
-	}
-
-	// The next two methods handle the echo service.
-	// These are almost certainly not the best place to put these, but are here for your reference.
-	// By updating the Server.echo function pointer above, these methods can be easily moved.
-	private static echo(req: Request, res: Response) {
-		try {
-			console.log(`Server::echo(..) - params: ${JSON.stringify(req.params)}`);
-			const response = Server.performEcho(req.params.msg);
-			res.status(200).json({result: response});
-		} catch (err) {
-			res.status(400).json({error: err});
-		}
-	}
-
-	private static performEcho(msg: string): string {
-		if (typeof msg !== "undefined" && msg !== null) {
-			return `${msg}...${msg}`;
-		} else {
-			return "Message not provided";
-		}
 	}
 }
