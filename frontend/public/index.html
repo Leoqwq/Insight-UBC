@@ -5,16 +5,22 @@
     <title>310 Frontend</title>
     <link href="/style.css" rel="stylesheet"/>
 </head>
+<h1 class="header">
+	Insight UBC
+</h1><hr>
 <body>
-<button id="click-me-button" class="button">Click Me!</button>
-
-<button class="button">View Datasets</button>
+<!--<button id="click-me-button" class="button">Click Me!</button>-->
 
 <form id="add-dataset-form">
-	<input type="text" id="dataset-id-input" placeholder="Enter dataset ID">
-	<input type="file" id="dataset-file-input">
-	<button id="add-dataset-button" class="button" type="submit">Upload Dataset</button>
+	<input class="input" type="text" id="dataset-id-input" placeholder="Enter dataset ID">
+	<input class="input" type="file" id="dataset-file-input"> <br>
+	<button id="add-dataset-button" class="button" type="submit">Upload Dataset</button><hr>
 </form>
+
+<input class="input" type="text" id="dataset-id-input-remove" placeholder="Enter dataset ID"><br>
+<button id="remove-dataset-button" class="button">Remove Dataset</button><hr>
+
+<button id="view-dataset-button" class="button">View Datasets</button>
 
 <script type="text/javascript" src="/frontend.js"></script>
 </body>
