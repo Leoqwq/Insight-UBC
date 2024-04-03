@@ -1,12 +1,48 @@
 .button {
-    background-color: #3f51b5;
+    background-color: cornflowerblue;
+	font-weight: bold;
     border: none;
     color: white;
     padding: 15px 32px;
+	margin-bottom: 50px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
+	border-radius: 8px 8px 8px 8px;
+}
+#view-dataset-button {
+	background-color: cornflowerblue;
+	font-weight: bold;
+	border: none;
+	color: white;
+	padding: 15px 32px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+	border-radius: 8px 8px 8px 8px;
+}
+
+.header {
+	background-color: cornflowerblue;
+	color: white;
+	padding: 20px;
+	text-align: center;
+	font-size: 34px;
+	margin-top: 0;
+	border-radius: 8px 8px 8px 8px;
+}
+
+.input {
+	margin-bottom: 20px;
+	margin-top: 10px;
+}
+
+body {
+	background-color: powderblue;
 }
 
 .button:hover {
