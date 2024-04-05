@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<script src="https://d3js.org/d3.v6.min.js"></script>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
     <title>310 Frontend</title>
     <link href="/style.css" rel="stylesheet"/>
@@ -20,8 +21,17 @@
 <input class="input" type="text" id="dataset-id-input-remove" placeholder="Enter dataset ID"><br>
 <button id="remove-dataset-button" class="button">Remove Dataset</button><hr>
 
-<button id="view-dataset-button" class="button">View Datasets</button>
+<button id="view-dataset-button" class="button">View Datasets</button> <hr>
+
+<p id="dataset-list"></p>
+<hr>
+
+<input class="input" type="text" id="dataset-id-input-insight" placeholder="Enter dataset ID"><br>
+<button id="view-insight-button" class="button">View Insights</button><hr>
+
+<div id="graph-container"></div>
 
 <script type="text/javascript" src="/frontend.js"></script>
+
 </body>
 </html>
